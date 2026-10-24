@@ -1,148 +1,477 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#123f2c"><title>Jungle Rush VR — Quest Build 0.7</title>
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monke Tag VR — Lower Body Update</title>
 <style>
-:root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#123f2c;color:#fff}#scene{display:block;width:100%;height:100%;touch-action:none}#hud{position:fixed;top:12px;left:12px;z-index:3;background:#073829da;border:1px solid #90efb5;border-radius:14px;padding:11px 14px;max-width:min(440px,calc(100vw - 24px));pointer-events:none}#title{font-weight:900;font-size:20px;color:#b8ff8c;letter-spacing:.3px}#stats{font-size:14px;margin-top:3px}#status{color:#ffe68c;font-size:13px;margin-top:4px}#help{position:fixed;left:12px;bottom:12px;z-index:3;background:#073829d9;border:1px solid #ffffff38;border-radius:12px;padding:10px 13px;font-size:12px;line-height:1.5;max-width:min(350px,calc(100vw - 24px));pointer-events:none}#vr-wrap{position:fixed;right:12px;top:12px;z-index:5;display:flex;gap:8px;align-items:center}button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 16px;min-height:44px;background:#baff74;color:#153922;cursor:pointer}button.secondary{background:#f3cf62}button:focus-visible{outline:3px solid #fff;outline-offset:3px}#vrStatus{font-size:11px;color:#eaffd7;max-width:130px;text-shadow:0 1px 3px #000}#welcome{position:fixed;z-index:10;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(#042d2499,#061d18dd)}.card{width:min(530px,100%);background:#eaffd9;color:#16452d;border:2px solid #aaff7b;border-radius:24px;padding:24px;box-shadow:0 18px 60px #00160e88}.card h1{margin:2px 0 8px;font-size:clamp(28px,5vw,42px);line-height:1.05}.card p{line-height:1.45}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.small{font-size:12px;opacity:.85}.loading{font-size:13px;color:#245637}@media(max-width:650px){#title{font-size:17px}#help{font-size:11px}#vr-wrap{top:auto;bottom:12px}#vrStatus{display:none}#hud{max-width:calc(100vw - 24px)}}
-</style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js"}}</script>
-</head>
-<body>
-<canvas id="scene" aria-label="Jungle Rush 3D jungle game"></canvas>
-<section id="hud"><div id="title">🌴 JUNGLE RUSH VR <span style="font-size:10px;color:#e2ffb6">QUEST BUILD 0.7</span></div><div id="stats">🖐️ Natural-reach movement playground</div><div id="status">Reach for a surface and push away to move.</div></section>
-<div id="vr-wrap"><span id="vrStatus">Checking VR support…</span><button id="vrButton" class="secondary" type="button">🥽 Enter VR</button></div>
-<div id="help"><b>QUEST CONTROLS</b><br>Reach with either controller, place your virtual hand against the floor, logs, or platforms, then push away. Right thumbstick snap-turns. No thumbstick walking.</div>
-<div id="welcome"><div class="card"><div style="font-size:38px">🖐️🌿🌳</div><h1>Jungle Rush VR</h1><p>A clean jungle movement playground. Reach toward the ground, logs, and platforms, then push away to propel yourself. The pig-like character and collectible clutter have been removed.</p><div class="actions"><button id="menuVr" type="button" class="secondary">🥽 ENTER VR</button></div><p class="small">Made for Meta Quest Browser. Keep your play area clear and start with gentle pushes. This prototype is single-player.</p><div id="loadStatus" class="loading">Loading the 3D jungle…</div></div></div>
+:root{--bg:#dff1ff;--fg:#10202e;--card:rgba(255,255,255,.92);--acc:#e8432e;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1a26;--fg:#f2f7fb;--card:rgba(16,28,40,.92);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a26;--fg:#f2f7fb;--card:rgba(16,28,40,.92);color-scheme:dark}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden}
+canvas{display:block}
+#ov{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:env(safe-area-inset-top,0px) 16px env(safe-area-inset-bottom,0px);pointer-events:none}
+#card{pointer-events:auto;background:var(--card);border-radius:18px;padding:22px 26px;max-width:420px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+h1{margin:0 0 6px;font-size:28px}
+p{margin:6px 0;line-height:1.45;font-size:15px}
+button{margin-top:10px;width:100%;font-size:18px;font-weight:700;padding:14px;border:0;border-radius:12px;background:var(--acc);color:#fff;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+#hud{position:fixed;left:0;right:0;top:env(safe-area-inset-top,0px);text-align:center;padding:10px;font-weight:700;font-size:20px;text-shadow:0 2px 6px rgba(0,0,0,.6);color:#fff;pointer-events:none}
+</style></head><body>
+<div id="hud"></div>
+<div id="ov"><div id="card">
+<h1>🦍 Monke Tag VR</h1>
+<p>Touch the ground, a wall or a tree and <b>push or swing your arms</b> to launch yourself. <b>Hold grip</b> to stick to a surface and climb, then let go to throw yourself. <b>Right trigger</b> fires your blaster and stuns a monkey for a few seconds.</p>
+<p>Fourteen monkeys are playing tag. Red glowing = <b>“it.”</b> Don’t get caught. If you’re it, touch someone to pass it on. You get a 2-second head start after every tag.</p>
+<p>VR tip: the virtual body and shoulders sit lower so your arms can reach the ground more naturally. Stand or crouch, whichever feels good.</p>
+<button id="go" disabled>Checking VR…</button>
+
+<p id="note" style="font-size:13px;opacity:.75"></p>
+</div></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script>
-window.addEventListener('error',e=>{const n=document.getElementById('loadStatus');if(n)n.textContent='Game error: '+(e.message||'unknown error')+' — refresh this page to retry.';const w=document.getElementById('welcome');if(w)w.style.display='grid';});
-window.addEventListener('unhandledrejection',e=>{const n=document.getElementById('loadStatus');if(n)n.textContent='Game error: '+String(e.reason&&e.reason.message||e.reason||'unknown error')+' — refresh this page to retry.';const w=document.getElementById('welcome');if(w)w.style.display='grid';});
-</script>
-<script type="module">
-import * as THREE from 'three';
-const canvas=document.getElementById('scene');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
-renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.6));renderer.setSize(window.innerWidth,window.innerHeight);renderer.xr.enabled=true;renderer.setClearColor(0x8bd7db);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
-try{renderer.xr.setReferenceSpaceType('local-floor')}catch(e){}
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x8bd7db);scene.fog=new THREE.Fog(0x8bd7db,35,95);
-const camera=new THREE.PerspectiveCamera(74,window.innerWidth/window.innerHeight,.08,130);camera.position.set(0,1.65,0);
-const rig=new THREE.Group();scene.add(rig);rig.add(camera);
-scene.add(new THREE.HemisphereLight(0xd9ffff,0x3c6130,2.0));const sun=new THREE.DirectionalLight(0xfff0c7,2.1);sun.position.set(-12,24,8);scene.add(sun);
-const mat=(color,roughness=.9)=>new THREE.MeshStandardMaterial({color,roughness,flatShading:true});
-const grass=mat(0x399f4c),bark=mat(0x80502d),leafA=mat(0x19864c),leafB=mat(0x35ab51),leafC=mat(0x68c95c),stone=mat(0x9aada0),gold=mat(0xffb52d,.45),goldLight=mat(0xffe975,.35),teal=mat(0x20c4b4),coral=mat(0xff766f),purple=mat(0x9975db),dark=mat(0x23383a);
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(180,180),grass);floor.rotation.x=-Math.PI/2;floor.position.y=-.14;scene.add(floor);
-const platforms=[];
-const pushBoxes=[];
-const treePushSurfaces=[];
-const HAND_RADIUS=.34;
-const ARM_EXTENSION=.30;
-const PUSH_GAIN=1.35;
-const MAX_PUSH_SPEED=3.0;
-function block(name,x,y,z,sx,sy,sz,material,topSurface=true){const mesh=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);mesh.name=name;mesh.position.set(x,y,z);scene.add(mesh);if(topSurface){platforms.push({x,z,sx,sz,top:y+sy/2});pushBoxes.push(mesh)}return mesh}
-function tree(x,z,scale=1,variant=0){const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.38*scale,.58*scale,4.8*scale,7),bark);trunk.position.set(x,2.3*scale,z);scene.add(trunk);treePushSurfaces.push({x,z,radius:.62*scale,minY:-.1*scale,maxY:4.7*scale});for(let i=0;i<4;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry((1.35-i*.06)*scale,1),[leafA,leafB,leafC][(i+variant)%3]);crown.position.set(x+Math.sin(i*5+variant)*.5*scale,4.2*scale+i*.35*scale,z+Math.cos(i*4+variant)*.45*scale);crown.scale.set(1.1,1,.95);scene.add(crown)}}
-function makePlatform(name,x,y,z,sx,sy,sz,material){block(name,x,y,z,sx,sy,sz,material,true);block(name+' grassy top',x,y+sy/2+.012,z,sx*.9,.025,sz*.9,mat(0x68c75a),false)}
-makePlatform('Mossy log bridge',0,.8,1,3.3,.55,1.5,bark);makePlatform('Turquoise step',-3,1.35,-2,2.5,.42,2,teal);makePlatform('Sunshine step',3.1,1.9,-4.7,2.4,.42,2,gold);makePlatform('Coral high ledge',-.2,2.8,-8,3.2,.48,2.2,coral);makePlatform('Violet lookout',5.8,1.05,1.3,2.4,.4,2.4,purple);makePlatform('Far stepping stone',-5.7,.85,-8.8,2.5,.36,2,stone);
-for(let i=0;i<22;i++){const a=i*2.399,r=14+(i%4)*3,x=Math.cos(a)*r,z=Math.sin(a)*r-2;tree(x,z,.85+(i%3)*.12,i%3)}
+const C={grav:9.8,hand:.13,bodyR:.28,bodyDrop:.35,avatarDrop:1.1,botIt:4.7,botRun:4.3,boost:1.15,maxV:14};
+const R=new THREE.WebGLRenderer({antialias:true});
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);R.xr.enabled=true;
+document.body.appendChild(R.domElement);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x87ceeb);scene.fog=new THREE.Fog(0x87ceeb,30,95);
+const cam=new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.05,200);
+const spec=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.1,200);
+const rig=new THREE.Group();rig.position.set(0,0,9);rig.add(cam);scene.add(rig);
+scene.add(new THREE.HemisphereLight(0xffffff,0x446644,1));
+const sun=new THREE.DirectionalLight(0xffffff,.6);sun.position.set(20,40,10);scene.add(sun);
+addEventListener('resize',()=>{R.setSize(innerWidth,innerHeight);cam.aspect=spec.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();spec.updateProjectionMatrix()});
 
-const hands=[];
-const handPrevious=[new THREE.Vector3(),new THREE.Vector3()];
-const handCurrent=[new THREE.Vector3(),new THREE.Vector3()];
-const handRaw=[new THREE.Vector3(),new THREE.Vector3()];
-const handShoulders=[new THREE.Vector3(),new THREE.Vector3()];
-let handHistoryReady=false;
-const armMeshes=[],handVisuals=[];
-for(let i=0;i<2;i++){
-  const controller=renderer.xr.getController(i);
-  rig.add(controller);
-  hands.push(controller);
-  rig.add(renderer.xr.getControllerGrip(i));
-  const arm=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,1,9),mat(i===0?0xd9a34c:0xb9823c));
-  arm.visible=false;scene.add(arm);armMeshes.push(arm);
-  const palm=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),mat(i===0?0x9affc4:0xffd16c));
-  palm.visible=false;scene.add(palm);handVisuals.push(palm);
+/* ---------- level ---------- */
+const boxes=[];
+function box(x,y,z,w,h,d,c){
+  boxes.push({min:new THREE.Vector3(x-w/2,y-h/2,z-d/2),max:new THREE.Vector3(x+w/2,y+h/2,z+d/2)});
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color:c}));
+  m.position.set(x,y,z);scene.add(m);
 }
-let started=false,yaw=0,pitch=0,verticalSpeed=0,grounded=true,elapsed=0,lastTime=0,turnCooldown=0;
+box(0,-1,0,100,2,100,0x4a8f3c);
+[[0,6,-50,100,12,2],[0,6,50,100,12,2],[-50,6,0,2,12,100],[50,6,0,2,12,100]].forEach(w=>box(...w,0x59616b));
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+for(let i=0;i<34;i++){
+  const x=(rnd()-.5)*88,z=(rnd()-.5)*88;
+  if(Math.hypot(x,z-9)<7)continue;
+  box(x,3,z,.9,6,.9,0x6b4423);
+  const t=new THREE.Mesh(new THREE.ConeGeometry(2.6,5.5,8),new THREE.MeshLambertMaterial({color:0x2e7d32}));
+  t.position.set(x,8,z);scene.add(t);
+}
+for(let i=0;i<5;i++)box(0,.6+i*1.2,-14,9-i*1.6,1.2,9-i*1.6,[0xc9a66b,0xb8905a,0xa87d4a,0x976b3b,0x865a2d][i]);
+[[-14,2.2,-4,5,.5,5],[14,3.2,-6,5,.5,5],[-20,4.5,-20,6,.5,4],[18,5.2,-22,5,.5,5],[0,7,-26,6,.5,5],
+ [-10,.8,2,2,1.6,2],[-13,1.8,0,2,.4,2],[11,.8,4,2,1.6,2],[14,1.6,6,2,1.2,2],[-26,1,10,3,2,3],[24,1.5,12,3,3,3],
+ [-32,3,-8,4,.5,4],[30,4,-10,4,.5,4]].forEach(p=>box(...p,0xe0b84a));
 
-function message(text){document.getElementById('status').textContent=text}
-function begin(){started=true;document.getElementById('welcome').style.display='none';message('Movement tuned for shorter, smoother pushes.')}
-async function enterVR(){try{if(!navigator.xr){message('WebXR is not available. Open this link directly in Meta Quest Browser.');return}
-  // requestSession is invoked directly by the user's button click so headset permission is not lost across an earlier await.
-  const sessionPromise=navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});
-  const session=await sessionPromise;
-  await renderer.xr.setSession(session);
-  begin();
-}catch(err){document.getElementById('welcome').style.display='grid';document.getElementById('loadStatus').textContent='Could not enter VR: '+(err&&err.message?err.message:'permission or device issue')}}
-document.getElementById('vrButton').addEventListener('click',async()=>{if(renderer.xr.isPresenting){const s=renderer.xr.getSession();if(s)await s.end()}else await enterVR()});document.getElementById('menuVr').addEventListener('click',enterVR);
-renderer.xr.addEventListener('sessionstart',()=>{camera.position.set(0,0,0);camera.rotation.set(0,0,0);handHistoryReady=false;document.getElementById('vrButton').textContent='⏹ Exit VR';message('Plant a hand on the floor or a platform and push away gently.')});renderer.xr.addEventListener('sessionend',()=>{camera.position.set(0,1.65,0);handHistoryReady=false;document.getElementById('vrButton').textContent='🥽 Enter VR';message('VR ended. See you in the jungle!')});
-function groundHeight(x,z){let best=0;for(const p of platforms){if(Math.abs(x-p.x)<p.sx*.5+.23&&Math.abs(z-p.z)<p.sz*.5+.23&&p.top>best)best=p.top}return best}
-function handTouchesSurface(point){
-  // Floor contact zone; hands have a forgiving radius to make pushes easier.
-  if(point.y<=.62&&Math.abs(point.x)<90&&Math.abs(point.z)<90)return true;
-  for(const mesh of pushBoxes){const bounds=new THREE.Box3().setFromObject(mesh).expandByScalar(HAND_RADIUS);if(bounds.containsPoint(point))return true}
-  for(const trunk of treePushSurfaces){const dx=point.x-trunk.x,dz=point.z-trunk.z;if(point.y>=trunk.minY-HAND_RADIUS&&point.y<=trunk.maxY+HAND_RADIUS&&dx*dx+dz*dz<=(trunk.radius+HAND_RADIUS)*(trunk.radius+HAND_RADIUS))return true}
-  return false
-}
-function sampleExtendedHands(){
-  const headPos=new THREE.Vector3(),headQuat=new THREE.Quaternion(),rightDir=new THREE.Vector3(1,0,0),down=new THREE.Vector3(0,-.68,0),forward=new THREE.Vector3(0,0,-.06);
-  camera.getWorldPosition(headPos);camera.getWorldQuaternion(headQuat);rightDir.applyQuaternion(headQuat);down.applyQuaternion(headQuat);forward.applyQuaternion(headQuat);
-  rig.updateMatrixWorld(true);
-  for(let i=0;i<2;i++){
-    hands[i].getWorldPosition(handRaw[i]);
-    const shoulder=headPos.clone().addScaledVector(rightDir,i===0?-.24:.24).add(down).add(forward);
-    handShoulders[i].copy(shoulder);
-    const reach=handRaw[i].clone().sub(shoulder);
-    if(reach.lengthSq()<.001)reach.set(0,-1,0);else reach.normalize();
-    handCurrent[i].copy(handRaw[i]).addScaledVector(reach,ARM_EXTENSION);
+/* ---------- collision ---------- */
+function resolve(p,r){
+  let any=false;const N=new THREE.Vector3();
+  for(const b of boxes){
+    const cx=Math.max(b.min.x,Math.min(p.x,b.max.x)),cy=Math.max(b.min.y,Math.min(p.y,b.max.y)),cz=Math.max(b.min.z,Math.min(p.z,b.max.z));
+    const dx=p.x-cx,dy=p.y-cy,dz=p.z-cz,d2=dx*dx+dy*dy+dz*dz;
+    if(d2>=r*r)continue;
+    let nx=0,ny=0,nz=0,pen;
+    if(d2>1e-9){const d=Math.sqrt(d2);nx=dx/d;ny=dy/d;nz=dz/d;pen=r-d}
+    else{
+      const o=[p.x-b.min.x,b.max.x-p.x,p.y-b.min.y,b.max.y-p.y,p.z-b.min.z,b.max.z-p.z];let k=0;
+      for(let i=1;i<6;i++)if(o[i]<o[k])k=i;
+      const s=k%2?1:-1;if(k<2)nx=s;else if(k<4)ny=s;else nz=s;pen=o[k]+r;
+    }
+    p.x+=nx*pen;p.y+=ny*pen;p.z+=nz*pen;N.x+=nx;N.y+=ny;N.z+=nz;any=true;
   }
+  return any?N.normalize():null;
 }
-function moveVR(dt){
-  const session=renderer.xr.getSession();if(!session)return;
-  let right=null;for(const source of session.inputSources){if(source.gamepad&&source.handedness==='right')right=source.gamepad}
-  sampleExtendedHands();
-  if(!handHistoryReady){for(let i=0;i<2;i++)handPrevious[i].copy(handCurrent[i]);handHistoryReady=true}
-  else{
-    const bodyPush=new THREE.Vector3();let contactCount=0;
-    for(let i=0;i<2;i++){
-      const delta=handCurrent[i].clone().sub(handPrevious[i]);
-      const touchingNow=handTouchesSurface(handCurrent[i]);
-      const touchingBefore=handTouchesSurface(handPrevious[i]);
-      if((touchingNow||touchingBefore)&&delta.lengthSq()>.000001){
-        bodyPush.addScaledVector(delta,-1);contactCount++;
+function touching(p,r){
+  for(const b of boxes){
+    const dx=p.x-Math.max(b.min.x,Math.min(p.x,b.max.x)),dy=p.y-Math.max(b.min.y,Math.min(p.y,b.max.y)),dz=p.z-Math.max(b.min.z,Math.min(p.z,b.max.z));
+    if(dx*dx+dy*dy+dz*dz<r*r)return true;
+  }
+  return false;
+}
+
+/* ---------- monkey model ---------- */
+const Y=new THREE.Vector3(0,1,0),V=(x,y,z)=>new THREE.Vector3(x,y,z);
+const S=new THREE.SphereGeometry(1,12,8),CY=new THREE.CylinderGeometry(1,1,1,10),TP=new THREE.CylinderGeometry(.72,1,1,10);
+const whiteM=new THREE.MeshBasicMaterial({color:0xffffff}),blackM=new THREE.MeshBasicMaterial({color:0x111111}),eyeM=new THREE.MeshBasicMaterial({color:0x4a2a12});
+const texC={};
+function furTex(hex){
+  if(texC[hex])return texC[hex];
+  const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');
+  x.fillStyle='#'+new THREE.Color(hex).getHexString();x.fillRect(0,0,128,128);
+  for(let i=0;i<1500;i++){
+    const a=.08+Math.random()*.2;x.strokeStyle=Math.random()<.5?'rgba(255,235,200,'+a+')':'rgba(0,0,0,'+a+')';
+    const px=Math.random()*128,py=Math.random()*128;x.beginPath();x.moveTo(px,py);x.lineTo(px+(Math.random()-.5)*4,py+3+Math.random()*6);x.stroke();
+  }
+  const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;return texC[hex]=t;
+}
+function mesh(geo,mat,x,y,z,sx,sy,sz,rx,ry,rz){const m=new THREE.Mesh(geo,mat);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.rotation.set(rx||0,ry||0,rz||0);return m}
+function bake(arr,parent){
+  const by=new Map();
+  arr.forEach(m=>{if(!by.has(m.material))by.set(m.material,[]);by.get(m.material).push(m)});
+  by.forEach((ms,mat)=>{
+    const P=[],N=[],U=[];
+    ms.forEach(m=>{m.updateMatrix();const g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();g.applyMatrix4(m.matrix);P.push(g.attributes.position.array);N.push(g.attributes.normal.array);U.push(g.attributes.uv.array)});
+    const cat=(A,n)=>{const o=new Float32Array(A.reduce((t,a)=>t+a.length,0));let k=0;A.forEach(a=>{o.set(a,k);k+=a.length});return new THREE.BufferAttribute(o,n)};
+    const bg=new THREE.BufferGeometry();bg.setAttribute('position',cat(P,3));bg.setAttribute('normal',cat(N,3));bg.setAttribute('uv',cat(U,2));
+    parent.add(new THREE.Mesh(bg,mat));
+  });
+}
+function makeMonkey(fur,skinHex,fing){
+  const fm=new THREE.MeshLambertMaterial({map:furTex(fur)}),dk=new THREE.MeshLambertMaterial({map:furTex(new THREE.Color(fur).multiplyScalar(.6).getHex())}),sk=new THREE.MeshLambertMaterial({color:skinHex});
+  const g=new THREE.Group(),bodyG=new THREE.Group(),armG=new THREE.Group(),legG=new THREE.Group();g.add(bodyG,armG,legG);scene.add(g);
+  let st=[];const P=(geo,mat,x,y,z,sx,sy,sz)=>st.push(mesh(geo,mat,x,y,z,sx,sy,sz));
+  P(S,fm,0,.18,0,.3,.3,.24);P(S,fm,0,-.06,0,.27,.26,.23);P(S,fm,0,-.22,-.03,.25,.18,.22);P(S,fm,0,.3,-.04,.36,.14,.22);
+  P(S,sk,0,.2,.19,.18,.18,.06);P(CY,fm,0,.38,.05,.1,.14,.1);
+  P(S,fm,0,.55,.08,.19,.18,.2);P(S,fm,0,.69,.05,.1,.05,.12);P(S,fm,0,.6,.19,.15,.04,.08);
+  P(S,sk,0,.5,.2,.14,.15,.1);P(S,sk,0,.44,.27,.1,.075,.09);P(S,sk,0,.38,.27,.07,.04,.07);
+  P(S,blackM,-.025,.45,.35,.012,.01,.01);P(S,blackM,.025,.45,.35,.012,.01,.01);P(S,blackM,0,.405,.335,.06,.008,.02);
+  [-1,1].forEach(s=>{
+    P(S,dk,s*.065,.56,.255,.045,.035,.03);P(S,whiteM,s*.065,.56,.27,.026,.022,.02);P(S,eyeM,s*.065,.56,.285,.016,.016,.01);P(S,blackM,s*.065,.56,.292,.008,.008,.006);
+    P(S,fm,s*.19,.53,.06,.06,.075,.03);P(S,sk,s*.2,.53,.075,.04,.055,.015);
+  });
+  bake(st,bodyG);
+  const tail=mkTail(fm,bodyG);
+  const mark=new THREE.Mesh(new THREE.ConeGeometry(.15,.3,8),new THREE.MeshBasicMaterial({color:0xff2a1a}));
+  mark.rotation.x=Math.PI;mark.position.set(0,1.1,0);bodyG.add(mark);
+  const mkArm=sd=>{
+    const A={up:new THREE.Mesh(TP,fm),lo:new THREE.Mesh(TP,fm),el:mesh(S,fm,0,0,0,.068,.068,.068),sh:mesh(S,fm,0,0,0,.1,.1,.1),hg:new THREE.Group(),fingers:[]};
+    armG.add(A.up,A.lo,A.el,A.sh,A.hg);
+    st=[];
+    if(fing){P(S,fm,0,0,-.03,.05,.045,.05);P(S,fm,0,.002,.025,.058,.03,.065);P(S,sk,0,-.022,.03,.05,.014,.055)}
+    else{P(S,dk,0,0,-.01,.052,.04,.06);P(S,dk,0,-.015,.1,.058,.035,.04);P(S,dk,0,-.03,.13,.05,.03,.03);A.el.visible=false;A.sh.visible=false}
+    bake(st,A.hg);
+    if(fing){
+      const mkF=(x,y,z,l1,l2,r,ry,b,k1,k2,ord)=>{
+        const p=new THREE.Group();p.position.set(x,y,z);if(ord)p.rotation.order=ord;p.rotation.set(b,ry,0);
+        const d=new THREE.Group();d.position.z=l1;
+        d.add(mesh(CY,dk,0,0,l2/2,r*.85,l2,r*.85,Math.PI/2,0,0),mesh(S,dk,0,0,l2,r*.9,r*.9,r*.9));
+        p.add(mesh(CY,dk,0,0,l1/2,r,l1,r,Math.PI/2,0,0),d);A.hg.add(p);A.fingers.push({p,d,b,k1,k2});
+      };
+      [[-.036,.045,.035,.01],[-.012,.05,.04,-.0],[.012,.05,.04,0],[.036,.043,.033,-.01]].forEach(f=>mkF(f[0],-.005,.075,f[1],f[2],.011,f[3],.08,1.3,1.3));
+      mkF(-sd*.05,-.012,.03,.04,.035,.013,-sd*.6,.3,.5,.7,'YXZ');
+    }
+    return A;
+  };
+  const mkLeg=()=>{
+    const L={th:new THREE.Mesh(TP,fm),sh:new THREE.Mesh(TP,fm),kn:mesh(S,fm,0,0,0,.08,.08,.08),ft:new THREE.Group()};
+    legG.add(L.th,L.sh,L.kn,L.ft);
+    st=[];P(S,sk,0,-.012,.05,.055,.03,.1);P(S,sk,0,0,-.01,.05,.04,.05);
+    if(!fing)L.kn.visible=false;
+    [-.03,-.01,.01,.03].forEach(x=>P(S,sk,x,-.005,.14,.017,.014,.03));
+    bake(st,L.ft);return L;
+  };
+  return{g,fm,dk,sk,tail,mark,bodyG,armG,legG,arms:[mkArm(-1),mkArm(1)],legs:[mkLeg(),mkLeg()]};
+}
+const TN=12,TR=8;
+function mkTail(mat,parent){
+  const pos=new Float32Array(TN*TR*3),nor=new Float32Array(TN*TR*3),uv=new Float32Array(TN*TR*2),idx=[];
+  for(let i=0;i<TN;i++)for(let j=0;j<TR;j++){uv[(i*TR+j)*2]=j/TR*2;uv[(i*TR+j)*2+1]=i/TN*2}
+  for(let i=0;i<TN-1;i++)for(let j=0;j<TR;j++){const a=i*TR+j,b=i*TR+(j+1)%TR,c=(i+1)*TR+j,d=(i+1)*TR+(j+1)%TR;idx.push(a,b,c,b,d,c)}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('normal',new THREE.BufferAttribute(nor,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));g.setIndex(idx);
+  const m=new THREE.Mesh(g,mat);m.frustumCulled=false;parent.add(m);return m;
+}
+function setTail(tm,T,sp){
+  const pts=[],pa=tm.geometry.attributes.position,na=tm.geometry.attributes.normal;
+  for(let i=0;i<TN;i++){const k=i/(TN-1);
+    pts.push(V(Math.sin(T*2.6-k*3.2)*(.03+.08*sp)*k,-.2+.62*Math.pow(k,1.4)-.02*Math.sin(T*3+k*2)*k,-.2-.42*Math.sin(k*2.1)));}
+  for(let i=0;i<TN;i++){
+    const k=i/(TN-1),tan=pts[Math.min(i+1,TN-1)].clone().sub(pts[Math.max(i-1,0)]).normalize();
+    let n=new THREE.Vector3().crossVectors(tan,V(1,0,0));if(n.lengthSq()<1e-4)n.set(0,1,0);n.normalize();
+    const b=new THREE.Vector3().crossVectors(tan,n),r=.05*(1-Math.pow(k,1.3))+.003;
+    for(let j=0;j<TR;j++){
+      const a=j/TR*Math.PI*2,c=Math.cos(a),s=Math.sin(a),o=(i*TR+j)*3;
+      const rx=n.x*c+b.x*s,ry=n.y*c+b.y*s,rz=n.z*c+b.z*s;
+      pa.array[o]=pts[i].x+rx*r;pa.array[o+1]=pts[i].y+ry*r;pa.array[o+2]=pts[i].z+rz*r;
+      na.array[o]=rx;na.array[o+1]=ry;na.array[o+2]=rz;
+    }
+  }
+  pa.needsUpdate=true;na.needsUpdate=true;
+}
+function seg(m,a,b,r,ex,ez){const d=b.clone().sub(a),L=d.length()||1e-3;m.position.copy(a).addScaledVector(d,.5);m.scale.set(r*(ex||1),L,r*(ez||1));m.quaternion.setFromUnitVectors(Y,d.divideScalar(L))}
+function ik2(a,b,L1,L2,pole){
+  const d0=b.clone().sub(a),dl=d0.length(),d=Math.max(dl,.05),dir=d0.divideScalar(dl||1);
+  if(d>=L1+L2)return a.clone().addScaledVector(dir,d*L1/(L1+L2));
+  const x=(L1*L1-L2*L2+d*d)/(2*d),h=Math.sqrt(Math.max(0,L1*L1-x*x));
+  const bend=pole.clone().addScaledVector(dir,-pole.dot(dir));
+  if(bend.lengthSq()<1e-6)bend.set(0,0,-1);
+  bend.normalize();
+  return a.clone().addScaledVector(dir,x).addScaledVector(bend,h);
+}
+function roll(m,dir,q){
+  const hx=V(1,0,0).applyQuaternion(q);hx.addScaledVector(dir,-hx.dot(dir));
+  if(hx.lengthSq()<1e-4)return;hx.normalize();
+  const bx=V(1,0,0).applyQuaternion(m.quaternion);
+  const ang=Math.atan2(dir.dot(new THREE.Vector3().crossVectors(bx,hx)),bx.dot(hx));
+  m.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(dir,ang));
+}
+const SHO=[V(-.27,.2,-.04),V(.27,.2,-.04)],HIP=[V(-.15,-.18,-.02),V(.15,-.18,-.02)],POLE_A=[V(-1,-.3,-.8),V(1,-.3,-.8)],POLE_L=V(0,.1,1),bm=new THREE.Matrix4();
+function pose(m,h0,h1,f0,f1,T,q0,q1,c0,c1){
+  [[h0,q0,c0],[h1,q1,c1]].forEach(([h,q,c],i)=>{
+    const A=m.arms[i],sh=SHO[i],el=ik2(sh,h,.38,.38,POLE_A[i]);
+    seg(A.up,sh,el,.085);seg(A.lo,el,h,.065,1.15,.85);A.el.position.copy(el);A.sh.position.copy(sh);
+    const f=h.clone().sub(el).normalize();
+    if(q){roll(A.lo,f,q);A.hg.quaternion.copy(q)}
+    else{
+      const x=new THREE.Vector3().crossVectors(Y,f);if(x.lengthSq()<1e-4)x.set(1,0,0);x.normalize();
+      bm.makeBasis(x,new THREE.Vector3().crossVectors(f,x),f);A.hg.quaternion.setFromRotationMatrix(bm);
+    }
+    A.hg.position.copy(h);
+    A.fingers.forEach(F=>{F.p.rotation.x=F.b+(c||0)*F.k1;F.d.rotation.x=.1+(c||0)*F.k2});
+  });
+  [f0,f1].forEach((f,i)=>{
+    const L=m.legs[i],hp=HIP[i],kn=ik2(hp,f,.3,.3,POLE_L);
+    seg(L.th,hp,kn,.1);seg(L.sh,kn,f,.075);L.kn.position.copy(kn);L.ft.position.copy(f);
+  });
+  setTail(m.tail,T,m.sp||0);
+}
+function walk(m,ph,air,T){
+  if(air){pose(m,V(-.42,.3,.3),V(.42,.3,.3),V(-.16,-.28,-.05),V(.16,-.28,-.05),T,null,null,.2,.2);return}
+  const s=Math.sin(ph),c=Math.cos(ph);
+  pose(m,V(-.38,-.3+Math.max(0,-s)*.14,.15+s*.28),V(.38,-.3+Math.max(0,s)*.14,.15-s*.28),
+    V(-.16,-.33+Math.max(0,s)*.12,c*.2),V(.16,-.33+Math.max(0,-s)*.12,-c*.2),T,null,null,.55,.55);
+}
+function setIt(m,on){const e=on?0x881100:0;m.fm.emissive.setHex(e);m.dk.emissive.setHex(e);m.sk.emissive.setHex(e);m.mark.visible=on}
+
+/* ---------- player ---------- */
+const ARM=1.25,shoLocal=new THREE.Vector3();let shoInit=false;
+const vel=new THREE.Vector3(),head=new THREE.Vector3(0,1.6,9),wp=new THREE.Vector3(),headLocal=new THREE.Vector3(0,1.6,0);
+let headYaw=0,yawD=0,pitchD=.25,pGrounded=false,pmPh=0,mode='spec';
+const hv=[new THREE.Vector3(),new THREE.Vector3()],hOn=[false,false],hExt=[new THREE.Vector3(),new THREE.Vector3()],handsWorld=[],hQ=[new THREE.Quaternion(),new THREE.Quaternion()],hCurlT=[0,0],hCurl=[0,0];
+let fireHeld=false,fireCd=0,flashT=0,AC=null;const fireDir=new THREE.Vector3(0,0,-1);
+const keys={};
+addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='Space'&&mode==='desk')e.preventDefault()});
+addEventListener('keyup',e=>{keys[e.code]=0});
+addEventListener('mousemove',e=>{if(document.pointerLockElement){yawD-=e.movementX*.0025;pitchD=Math.max(-.3,Math.min(1,pitchD+e.movementY*.0025))}});
+R.domElement.addEventListener('click',()=>{if(mode==='desk'&&!document.pointerLockElement)R.domElement.requestPointerLock()});
+const hudCanvas=document.createElement('canvas');hudCanvas.width=512;hudCanvas.height=256;
+const hudCtx=hudCanvas.getContext('2d'),hudTex=new THREE.CanvasTexture(hudCanvas);
+const hudPlane=new THREE.Mesh(new THREE.PlaneGeometry(.16,.08),new THREE.MeshBasicMaterial({map:hudTex,transparent:true}));
+hudPlane.rotation.x=-Math.PI/2;hudPlane.position.set(0,.07,.02);
+const ctrls=[0,1].map(i=>{
+  const c=R.xr.getController(i);c.userData={};
+  c.addEventListener('connected',e=>{c.userData.src=e.data;if(e.data.handedness==='left')c.add(hudPlane)});
+  c.addEventListener('disconnected',()=>{c.userData.src=null;c.userData.prev=null});
+  rig.add(c);return c;
+});
+const pm=makeMonkey(0x8a6a45,0x3d2b22,true);
+const BX=new THREE.BoxGeometry(1,1,1),gunM=new THREE.MeshLambertMaterial({color:0x2a2f36}),accM=new THREE.MeshLambertMaterial({color:0xff7a1a,emissive:0x552200});
+const flash=new THREE.Mesh(S,new THREE.MeshBasicMaterial({color:0xffc04a}));flash.scale.setScalar(.045);flash.position.set(0,.012,.36);flash.visible=false;
+(function(){const hg=pm.arms[0].hg,st=[];
+  st.push(mesh(BX,gunM,0,-.012,.12,.03,.03,.14),mesh(BX,gunM,0,.012,.15,.034,.036,.2),mesh(BX,gunM,0,.012,.285,.016,.016,.05),
+    mesh(BX,gunM,0,-.065,.075,.032,.1,.045,-.2),mesh(BX,gunM,0,.034,.24,.008,.012,.01),mesh(BX,gunM,0,.034,.07,.012,.012,.01),mesh(BX,accM,0,.012,.312,.018,.018,.012));
+  bake(st,hg);hg.add(flash);})();
+const tracers=[];
+for(let i=0;i<4;i++){const t=new THREE.Mesh(CY,new THREE.MeshBasicMaterial({color:0xffd24a}));t.visible=false;t.userData.life=0;scene.add(t);tracers.push(t)}
+function rayBox(o,d,b){let t0=0,t1=1e9;for(const ax of ['x','y','z']){const inv=1/(d[ax]||1e-9);let a=(b.min[ax]-o[ax])*inv,c=(b.max[ax]-o[ax])*inv;if(a>c){const q=a;a=c;c=q}t0=Math.max(t0,a);t1=Math.min(t1,c);if(t0>t1)return 1e9}return t0}
+function pew(){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain(),t=AC.currentTime;o.type='square';o.frequency.setValueAtTime(900,t);o.frequency.exponentialRampToValueAtTime(120,t+.12);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.13);o.connect(g);g.connect(AC.destination);o.start();o.stop(t+.14)}catch(e){}}
+function fire(){
+  const o=hv[1].clone().addScaledVector(fireDir,.34),d=fireDir.clone();
+  let th=80;boxes.forEach(b=>{const t=rayBox(o,d,b);if(t<th)th=t});
+  let hb=null;
+  bots.forEach(b=>{const w=b.pos.clone().sub(o),t=w.dot(d);if(t<0||t>th)return;if(w.addScaledVector(d,-t).length()<.55){th=t;hb=b}});
+  const tr=tracers.find(t=>t.userData.life<=0)||tracers[0];seg(tr,o,o.clone().addScaledVector(d,th),.006);tr.visible=true;tr.userData.life=.07;
+  flash.visible=true;flashT=.05;pew();
+  const c=ctrls.find(c=>c.userData.src&&c.userData.src.handedness==='right'),gp=c&&c.userData.src.gamepad;
+  if(gp&&gp.hapticActuators&&gp.hapticActuators[0])try{gp.hapticActuators[0].pulse(.5,30)}catch(e){}
+  if(hb){hits++;hb.stun=3.2;hb.vel.addScaledVector(d,5);hb.vel.y+=3.5}
+}
+function updateGun(dt,xr){
+  fireCd-=dt;
+  tracers.forEach(t=>{if(t.userData.life>0){t.userData.life-=dt;if(t.userData.life<=0)t.visible=false}});
+  if(flashT>0){flashT-=dt;if(flashT<=0)flash.visible=false}
+  if(xr&&fireHeld&&fireCd<=0&&hOn[1]){fire();fireCd=.2}
+}
+
+function readHead(frame){
+  const rs=R.xr.getReferenceSpace();if(!frame||!rs)return;
+  const p=frame.getViewerPose(rs);if(!p)return;
+  const t=p.transform.position,q=p.transform.orientation;
+  headLocal.set(t.x,t.y,t.z);
+  headYaw=new THREE.Euler().setFromQuaternion(new THREE.Quaternion(q.x,q.y,q.z,q.w),'YXZ').y;
+}
+function stepPlayer(dt,xr){
+  const disp=new THREE.Vector3(),stuck=[];let touched=false;handsWorld.length=0;
+  if(xr){const k=1-Math.exp(-4*dt);if(!shoInit){shoLocal.copy(headLocal);shoLocal.y-=.25;shoInit=true}else{shoLocal.x+=(headLocal.x-shoLocal.x)*k;shoLocal.z+=(headLocal.z-shoLocal.z)*k;shoLocal.y+=(headLocal.y-.25-shoLocal.y)*k}}else shoInit=false;
+  if(xr){
+    ctrls.forEach((c,ci)=>{
+      const s=c.userData.src;if(!s){c.userData.prev=null;hOn[ci]=false;return}
+      const hi=s.handedness==='right'?1:s.handedness==='left'?0:ci;hOn[hi]=true;
+      const gp=s.gamepad,grip=gp&&gp.buttons.length>1&&gp.buttons[1].pressed;
+      const ext=c.position.clone().sub(shoLocal).multiplyScalar(ARM).add(shoLocal);
+      hExt[hi].copy(ext);
+      wp.copy(rig.position).add(ext);
+      const t=touching(wp,C.hand);if(grip&&!c.userData.anchor&&t){c.userData.anchor=wp.clone();if(gp.hapticActuators&&gp.hapticActuators[0])try{gp.hapticActuators[0].pulse(.6,60)}catch(e){}}if(!grip)c.userData.anchor=null;if(c.userData.anchor)stuck.push(c.userData.anchor.clone().sub(ext));hQ[hi].copy(c.quaternion);hCurlT[hi]=c.userData.anchor?1:(hi===1?.85:(gp&&gp.buttons.length>1?gp.buttons[1].value:0));if(hi===1){fireHeld=!!(gp&&gp.buttons[0]&&gp.buttons[0].pressed);fireDir.set(0,0,-1).applyQuaternion(c.quaternion)}
+      if(t&&!c.userData.anchor&&c.userData.prev){
+        disp.add(c.userData.prev.clone().sub(ext));touched=true;
+        if(!c.userData.t&&gp.hapticActuators&&gp.hapticActuators[0])try{gp.hapticActuators[0].pulse(.4,40)}catch(e){}
       }
+      c.userData.t=t;c.userData.prev=ext;
+    });
+  }
+  if(stuck.length){const tg=new THREE.Vector3();stuck.forEach(v=>tg.add(v));tg.divideScalar(stuck.length);const d=tg.sub(rig.position);if(d.length()>.6)d.setLength(.6);rig.position.add(d);vel.lerp(d.divideScalar(dt).multiplyScalar(C.boost),.5);if(vel.length()>C.maxV)vel.setLength(C.maxV)}else if(touched){
+    if(disp.length()<.0025){disp.set(0,0,0);vel.multiplyScalar(Math.pow(.01,dt))}
+    else{if(disp.length()>.5)disp.setLength(.5);vel.lerp(disp.clone().divideScalar(dt).multiplyScalar(C.boost),.6);if(vel.length()>C.maxV)vel.setLength(C.maxV)}
+    rig.position.add(disp);
+  }else{
+    if(!xr){
+      const want=new THREE.Vector3();
+      if(mode==='desk'){
+        const f=new THREE.Vector3(-Math.sin(yawD),0,-Math.cos(yawD)),r=new THREE.Vector3(Math.cos(yawD),0,-Math.sin(yawD));
+        if(keys.KeyW)want.add(f);if(keys.KeyS)want.sub(f);if(keys.KeyD)want.add(r);if(keys.KeyA)want.sub(r);
+        if(want.lengthSq())want.normalize().multiplyScalar(keys.ShiftLeft?9.5:6.5);
+        if(keys.Space&&pGrounded)vel.y=6.8;
+      }
+      const k=Math.min(1,(pGrounded?10:2.5)*dt);vel.x+=(want.x-vel.x)*k;vel.z+=(want.z-vel.z)*k;
     }
-    if(contactCount>0){
-      bodyPush.multiplyScalar(PUSH_GAIN/contactCount);
-      bodyPush.clampLength(0,MAX_PUSH_SPEED*dt);
-      rig.position.add(bodyPush);
-      message('PUSH! Keep moving your hands against the surface.');
+    vel.y-=C.grav*dt;vel.multiplyScalar(1-.1*dt);
+    rig.position.addScaledVector(vel,dt);
+  }
+  head.copy(rig.position).add(headLocal);
+  const body=head.clone();body.y-=C.bodyDrop;
+  const before=body.clone(),n=resolve(body,C.bodyR);pGrounded=false;
+  if(n){
+    rig.position.add(body.sub(before));
+    const vn=vel.dot(n);if(vn<0)vel.addScaledVector(n,-vn);
+    if(n.y>.5){pGrounded=true;if(xr&&!touched){const f=Math.pow(.02,dt);vel.x*=f;vel.z*=f}}
+  }
+  if(rig.position.y<-20){rig.position.set(0,0,9);vel.set(0,0,0)}
+  head.copy(rig.position).add(headLocal);
+  if(xr)for(let i=0;i<2;i++)if(hOn[i]){hv[i].copy(rig.position).add(hExt[i]);resolve(hv[i],C.hand);handsWorld.push(hv[i])}
+}
+function updatePlayerModel(xr,dt,T){
+  pm.g.position.set(head.x,head.y-C.avatarDrop,head.z);
+  const it=itId===-1;setIt(pm,it);pm.mark.visible=it&&!xr;
+  pm.bodyG.visible=!xr;pm.legG.visible=!xr;
+  if(xr){
+    pm.g.rotation.y=headYaw+Math.PI;
+    const loc=v=>v.clone().sub(pm.g.position).applyAxisAngle(Y,-pm.g.rotation.y);
+    const gq=new THREE.Quaternion().setFromAxisAngle(Y,-pm.g.rotation.y),r180=new THREE.Quaternion().setFromAxisAngle(Y,Math.PI);
+    const lq=i=>gq.clone().multiply(hQ[i]).multiply(r180);
+    for(let i=0;i<2;i++)hCurl[i]+=(hCurlT[i]-hCurl[i])*Math.min(1,15*dt);
+    const hR=hOn[1]?loc(hv[1]):V(-.4,-.25,.15),hL=hOn[0]?loc(hv[0]):V(.4,-.25,.15);
+    pose(pm,hR,hL,V(-.16,-.33,0),V(.16,-.33,0),T,hOn[1]?lq(1):null,hOn[0]?lq(0):null,hCurl[1],hCurl[0]);
+  }else{
+    pm.g.rotation.y=mode==='desk'?yawD+Math.PI:Math.PI;
+    pmPh+=Math.hypot(vel.x,vel.z)*dt*2.2;walk(pm,pmPh,!pGrounded,T);
+  }
+}
+
+/* ---------- bots ---------- */
+const fur=[0x6b4a2b,0x3a2a20,0xb98a4a,0x7a7468,0x8c5a2e,0x4a3b32,0xc9a46a],skins=[0xc79a78,0x3d2b22,0xd6a98a,0x8c6a54];
+const bots=[];
+const NB=14,starts=Array.from({length:NB},(_,i)=>{const a=i*.9+.3,r=12+(i%3)*9;const x=Math.cos(a)*r;let z=Math.sin(a)*r-6;if(Math.hypot(x,z-9)<10)z-=14;return[x,z]});
+for(let i=0;i<NB;i++){
+  const m=makeMonkey(fur[i%7],skins[i%4],false);
+  bots.push({id:i,m,pos:new THREE.Vector3(starts[i][0],1,starts[i][1]),vel:new THREE.Vector3(),frozen:0,stun:0,target:null,ph:0});
+}
+let itId=0,cool=2,safe=0,tags=0,hits=0;
+function stepBot(b,dt){
+  const isIt=itId===b.id;const dir=new THREE.Vector3();
+  if(b.stun>0)b.stun-=dt;else if(b.frozen>0)b.frozen-=dt;
+  else if(isIt){
+    let best=head,bd=1e9;
+    [head,...bots.filter(o=>o!==b).map(o=>o.pos)].forEach(p=>{const d=Math.hypot(p.x-b.pos.x,p.z-b.pos.z);if(d<bd){bd=d;best=p}});
+    dir.set(best.x-b.pos.x,0,best.z-b.pos.z);
+  }else{
+    const ip=itId===-1?head:bots[itId].pos;
+    const away=new THREE.Vector3(b.pos.x-ip.x,0,b.pos.z-ip.z),d=away.length();
+    if(d<22){
+      dir.copy(away).normalize();
+      if(Math.abs(b.pos.x)>36||Math.abs(b.pos.z)>36)dir.add(new THREE.Vector3(-b.pos.x,0,-b.pos.z).normalize().multiplyScalar(1.6));
+    }else{
+      if(!b.target||Math.hypot(b.target.x-b.pos.x,b.target.z-b.pos.z)<2)b.target={x:(rnd()-.5)*70,z:(rnd()-.5)*70};
+      dir.set(b.target.x-b.pos.x,0,b.target.z-b.pos.z);
     }
   }
-  // Right stick only turns; it does not provide thumbstick walking.
-  if(right){const axes=right.axes||[],rx=axes.length>=4?(axes[2]||0):(axes[0]||0);if(Math.abs(rx)>.72&&turnCooldown<=0){rig.rotation.y-=Math.sign(rx)*Math.PI/6;turnCooldown=.32}}
-  turnCooldown=Math.max(0,turnCooldown-dt);
-  verticalSpeed-=15*dt;rig.position.y+=verticalSpeed*dt;
-  const floorY=groundHeight(rig.position.x,rig.position.z);
-  if(rig.position.y<=floorY&&verticalSpeed<0){rig.position.y=floorY;verticalSpeed=0;grounded=true}
-  rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38);
-  sampleExtendedHands();
-  for(let i=0;i<2;i++)handPrevious[i].copy(handCurrent[i]);
+  const moving=dir.lengthSq()>.001;if(moving)dir.normalize();
+  const sp=isIt?C.botIt:C.botRun,k=Math.min(1,8*dt);
+  b.vel.x+=(dir.x*sp-b.vel.x)*k;b.vel.z+=(dir.z*sp-b.vel.z)*k;b.vel.y-=14*dt;
+  b.pos.addScaledVector(b.vel,dt);
+  const n=resolve(b.pos,.35);let grounded=false,blocked=false;
+  if(n){
+    if(n.y>.5){grounded=true;if(b.vel.y<0)b.vel.y=0}
+    else{const vn=b.vel.dot(n);if(vn<0)b.vel.addScaledVector(n,-vn);if(moving)blocked=true}
+  }
+  if(grounded&&blocked)b.vel.y=7.5;
+  b.pos.x=Math.max(-47,Math.min(47,b.pos.x));b.pos.z=Math.max(-47,Math.min(47,b.pos.z));
+  if(b.pos.y<-10)b.pos.set(0,3,0);
+  const spd=Math.hypot(b.vel.x,b.vel.z);
+  b.m.g.position.copy(b.pos);
+  if(spd>.4)b.m.g.rotation.y=Math.atan2(b.vel.x,b.vel.z);
+  b.ph+=spd*dt*2.2;b.m.sp=Math.min(1,spd/5);
+  walk(b.m,b.ph,!grounded,T);
+  setIt(b.m,isIt);if(isIt)b.m.mark.position.y=1.1+Math.sin(T*6)*.07;
+  if(b.stun>0){b.m.fm.emissive.setHex(0x2255ff);b.m.dk.emissive.setHex(0x2255ff);b.m.sk.emissive.setHex(0x2255ff)}
 }
-function updateArmVisuals(){
-  for(let i=0;i<2;i++){
-    const arm=armMeshes[i],palm=handVisuals[i],shoulder=handShoulders[i],hand=handCurrent[i];
-    arm.visible=true;palm.visible=true;
-    const direction=hand.clone().sub(shoulder);
-    const length=Math.max(.12,direction.length());
-    arm.position.copy(shoulder).add(hand).multiplyScalar(.5);
-    arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.clone().normalize());
-    arm.scale.set(1,length,1);
-    palm.position.copy(hand);
+
+/* ---------- tag rules ---------- */
+const near=(a,b,r)=>a.distanceTo(b)<r;
+function giveIt(id){itId=id;cool=2.5;if(id>=0)bots[id].frozen=2.2;else{}}
+function tagLogic(dt){
+  cool-=dt;if(itId!==-1)safe+=dt;
+  if(cool>0)return;
+  if(itId===-1){
+    for(const b of bots){
+      const c=b.pos;
+      if(near(c,head,.9)||handsWorld.some(h=>near(c,h,.65))||near(c,pm.g.position,.8)){tags++;giveIt(b.id);return}
+    }
+  }else{
+    const it=bots[itId];if(it.frozen>0||it.stun>0)return;
+    if(near(it.pos,head,.95)||near(it.pos,pm.g.position,.8)||handsWorld.some(h=>near(it.pos,h,.6))){giveIt(-1);safe=0;return}
+    for(const o of bots)if(o!==it&&near(it.pos,o.pos,.85)){giveIt(o.id);return}
   }
 }
-function updateGame(dt){elapsed+=dt;}
-function animate(now){const dt=Math.min((now-lastTime)/1000||.016,.04);lastTime=now;if(started&&renderer.xr.isPresenting){moveVR(dt);updateArmVisuals();updateGame(dt)}else{for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}renderer.render(scene,camera)}
-renderer.setAnimationLoop(animate);
-window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});
-(async()=>{try{if(navigator.xr&&await navigator.xr.isSessionSupported('immersive-vr')){document.getElementById('vrStatus').textContent='Quest VR ready';document.getElementById('vrButton').textContent='🥽 Enter VR'}else{document.getElementById('vrStatus').textContent='Open this page in Quest Browser'}}catch(e){document.getElementById('vrStatus').textContent='Open this page in Quest Browser'}document.getElementById('loadStatus').textContent='Ready for Meta Quest. Press ENTER VR.'})();
-</script>
-</body></html>
+
+/* ---------- HUD ---------- */
+const hudDom=document.getElementById('hud');
+function drawHud(){
+  const it=itId===-1;
+  const msg=it?"YOU’RE IT! Tag someone":"Run! Stay free";
+  hudCtx.clearRect(0,0,512,256);
+  hudCtx.fillStyle=it?'rgba(190,20,10,.9)':'rgba(10,30,50,.9)';hudCtx.fillRect(0,0,512,256);
+  hudCtx.fillStyle='#fff';hudCtx.font='bold 40px sans-serif';hudCtx.fillText(msg,20,80);
+  hudCtx.font='36px sans-serif';hudCtx.fillText('Free time: '+safe.toFixed(1)+'s',20,150);
+  hudCtx.fillText('Tags: '+tags+'  Hits: '+hits,20,210);
+  hudTex.needsUpdate=true;
+  hudDom.textContent=msg+'  |  Free: '+safe.toFixed(1)+'s  |  Tags: '+tags+'  |  Hits: '+hits;
+}
+
+/* ---------- start buttons ---------- */
+const go=document.getElementById('go'),note=document.getElementById('note'),ov=document.getElementById('ov');
+const hint='  |  WASD move • Space jump • Shift sprint • click to look';
+if(navigator.xr){
+  navigator.xr.isSessionSupported('immersive-vr').then(ok=>{
+    go.disabled=!ok;go.textContent=ok?'Enter VR':'VR not available here';
+    if(!ok)note.textContent='For VR, open this link in the Quest Browser.';
+  }).catch(()=>{go.textContent='VR not available here'});
+}else{go.textContent='VR not available here';note.textContent='For VR, open this link in the Quest Browser.'}
+go.onclick=async()=>{
+  try{
+    const s=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor']});
+    R.xr.setReferenceSpaceType('local-floor');await R.xr.setSession(s);
+    mode='xr';ov.style.display='none';hudDom.style.display='none';
+    s.addEventListener('end',()=>{mode='spec';headLocal.set(0,1.6,0);ov.style.display='flex';hudDom.style.display='block'});
+  }catch(e){note.textContent='Could not start VR: '+e.message}
+};
+
+
+/* ---------- loop ---------- */
+let last=performance.now(),T=0;
+R.setAnimationLoop((t,frame)=>{
+  const now=performance.now(),dt=Math.min((now-last)/1000,.05);last=now;T+=dt;
+  const xr=R.xr.isPresenting;
+  if(xr)readHead(frame);else headLocal.set(0,1.6,0);
+  stepPlayer(dt,xr);
+  updateGun(dt,xr);bots.forEach(b=>stepBot(b,dt));
+  tagLogic(dt);updatePlayerModel(xr,dt,T);
+  drawHud();if(mode==='desk')hudDom.textContent+=hint;
+  if(xr)R.render(scene,cam);
+  else{
+    if(mode==='desk'){
+      const d=3.6;spec.position.set(head.x+Math.sin(yawD)*d*Math.cos(pitchD*.6),head.y+.6+pitchD*2.5,head.z+Math.cos(yawD)*d*Math.cos(pitchD*.6));
+      spec.lookAt(head.x,head.y+.15,head.z);
+    }else{spec.position.set(Math.cos(T*.12)*34,15,Math.sin(T*.12)*34-6);spec.lookAt(0,2,-6)}
+    R.render(scene,spec);
+  }
+});
+</script></body></html>
