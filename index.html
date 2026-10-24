@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#123f2c"><title>Jungle Rush VR — Hand Push Build 0.3</title>
+<meta name="theme-color" content="#123f2c"><title>Jungle Rush VR — Long Arms Build 0.4</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#123f2c;color:#fff}#scene{display:block;width:100%;height:100%;touch-action:none}#hud{position:fixed;top:12px;left:12px;z-index:3;background:#073829da;border:1px solid #90efb5;border-radius:14px;padding:11px 14px;max-width:min(440px,calc(100vw - 24px));pointer-events:none}#title{font-weight:900;font-size:20px;color:#b8ff8c;letter-spacing:.3px}#stats{font-size:14px;margin-top:3px}#status{color:#ffe68c;font-size:13px;margin-top:4px}#help{position:fixed;left:12px;bottom:12px;z-index:3;background:#073829d9;border:1px solid #ffffff38;border-radius:12px;padding:10px 13px;font-size:12px;line-height:1.5;max-width:min(350px,calc(100vw - 24px));pointer-events:none}#vr-wrap{position:fixed;right:12px;top:12px;z-index:5;display:flex;gap:8px;align-items:center}button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 16px;min-height:44px;background:#baff74;color:#153922;cursor:pointer}button.secondary{background:#f3cf62}button:focus-visible{outline:3px solid #fff;outline-offset:3px}#vrStatus{font-size:11px;color:#eaffd7;max-width:130px;text-shadow:0 1px 3px #000}#welcome{position:fixed;z-index:10;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(#042d2499,#061d18dd)}.card{width:min(530px,100%);background:#eaffd9;color:#16452d;border:2px solid #aaff7b;border-radius:24px;padding:24px;box-shadow:0 18px 60px #00160e88}.card h1{margin:2px 0 8px;font-size:clamp(28px,5vw,42px);line-height:1.05}.card p{line-height:1.45}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.small{font-size:12px;opacity:.85}.loading{font-size:13px;color:#245637}@media(max-width:650px){#title{font-size:17px}#help{font-size:11px}#vr-wrap{top:auto;bottom:12px}#vrStatus{display:none}#hud{max-width:calc(100vw - 24px)}}
 </style>
@@ -10,10 +10,10 @@
 </head>
 <body>
 <canvas id="scene" aria-label="Jungle Rush 3D jungle game"></canvas>
-<section id="hud"><div id="title">🌴 JUNGLE RUSH VR <span style="font-size:10px;color:#e2ffb6">HAND-PUSH 0.3</span></div><div id="stats">🏷️ Tags: <b id="tags">0</b> &nbsp; 🥭 Mangoes: <b id="mangoes">0</b>/10</div><div id="status">Explore the jungle and find the pink spirit!</div></section>
+<section id="hud"><div id="title">🌴 JUNGLE RUSH VR <span style="font-size:10px;color:#e2ffb6">LONG ARMS 0.4</span></div><div id="stats">🖐️ Arm-push movement · Jungle playground</div><div id="status">Reach, plant your hands, and push away to move.</div></section>
 <div id="vr-wrap"><span id="vrStatus">Checking VR support…</span><button id="vrButton" class="secondary" type="button">🥽 Enter VR</button></div>
-<div id="help"><b>Desktop:</b> WASD move · mouse drag to look · Space jump<br><b>Quest VR:</b> move your controller hands onto the floor, logs, or platforms, then push away to propel yourself. Right stick snap-turns. Build 0.3: hand-push tuning.</div>
-<div id="welcome"><div class="card"><div style="font-size:38px">🐒🌿🥭</div><h1>Jungle Rush VR</h1><p>Welcome to your jungle! Run across platforms, collect glowing mangoes, and tag the mischievous pink spirit. This is an original early prototype built for browser play and experimental Quest VR.</p><div class="actions"><button id="play" type="button">▶ Play Jungle Rush</button><button id="menuVr" type="button" class="secondary">🥽 Enter VR</button></div><p class="small">VR requires a compatible headset browser and a secure HTTPS connection. This prototype is single-player; it does not include online multiplayer. Make sure your play area is clear.</p><div id="loadStatus" class="loading">Loading the 3D jungle…</div></div></div>
+<div id="help"><b>Desktop:</b> WASD move · mouse drag to look · Space jump<br><b>Quest VR:</b> longer virtual arms reach surfaces sooner. Plant a hand on the floor, log, or platform and push away. Right stick snap-turns.</div>
+<div id="welcome"><div class="card"><div style="font-size:38px">🖐️🌿🌳</div><h1>Jungle Rush VR</h1><p>A clean jungle movement playground. Use longer virtual arms to reach the ground, logs, and platforms, then push away to propel yourself. The pig-like character and collectible clutter have been removed.</p><div class="actions"><button id="play" type="button">▶ Play Jungle Rush</button><button id="menuVr" type="button" class="secondary">🥽 Enter VR</button></div><p class="small">VR requires a compatible headset browser and a secure HTTPS connection. This prototype is single-player; it does not include online multiplayer. Make sure your play area is clear.</p><div id="loadStatus" class="loading">Loading the 3D jungle…</div></div></div>
 <script type="module">
 import * as THREE from 'three';
 const canvas=document.getElementById('scene');
@@ -30,81 +30,103 @@ const floor=new THREE.Mesh(new THREE.PlaneGeometry(180,180),grass);floor.rotatio
 const platforms=[];
 const pushBoxes=[];
 const treePushSurfaces=[];
-const HAND_RADIUS=.22;
+const HAND_RADIUS=.34;
+const ARM_EXTENSION=.72;
+const PUSH_GAIN=2.65;
+const MAX_PUSH_PER_FRAME=.42;
 function block(name,x,y,z,sx,sy,sz,material,topSurface=true){const mesh=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);mesh.name=name;mesh.position.set(x,y,z);scene.add(mesh);if(topSurface){platforms.push({x,z,sx,sz,top:y+sy/2});pushBoxes.push(mesh)}return mesh}
 function tree(x,z,scale=1,variant=0){const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.38*scale,.58*scale,4.8*scale,7),bark);trunk.position.set(x,2.3*scale,z);scene.add(trunk);treePushSurfaces.push({x,z,radius:.62*scale,minY:-.1*scale,maxY:4.7*scale});for(let i=0;i<4;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry((1.35-i*.06)*scale,1),[leafA,leafB,leafC][(i+variant)%3]);crown.position.set(x+Math.sin(i*5+variant)*.5*scale,4.2*scale+i*.35*scale,z+Math.cos(i*4+variant)*.45*scale);crown.scale.set(1.1,1,.95);scene.add(crown)}}
 function makePlatform(name,x,y,z,sx,sy,sz,material){block(name,x,y,z,sx,sy,sz,material,true);block(name+' grassy top',x,y+sy/2+.012,z,sx*.9,.025,sz*.9,mat(0x68c75a),false)}
 makePlatform('Mossy log bridge',0,.8,1,3.3,.55,1.5,bark);makePlatform('Turquoise step',-3,1.35,-2,2.5,.42,2,teal);makePlatform('Sunshine step',3.1,1.9,-4.7,2.4,.42,2,gold);makePlatform('Coral high ledge',-.2,2.8,-8,3.2,.48,2.2,coral);makePlatform('Violet lookout',5.8,1.05,1.3,2.4,.4,2.4,purple);makePlatform('Far stepping stone',-5.7,.85,-8.8,2.5,.36,2,stone);
 for(let i=0;i<22;i++){const a=i*2.399,r=14+(i%4)*3,x=Math.cos(a)*r,z=Math.sin(a)*r-2;tree(x,z,.85+(i%3)*.12,i%3)}
-for(let i=0;i<42;i++){const a=i*2.4,r=3.6+(i%7)*1.35,x=Math.cos(a)*r,z=Math.sin(a)*r-3;const f=new THREE.Mesh(new THREE.SphereGeometry(.18+(i%3)*.04,8,6),[goldLight,coral,teal][i%3]);f.position.set(x,.12,z);f.scale.set(1,.7,1);scene.add(f)}
-for(let i=0;i<5;i++){const ring=new THREE.Mesh(new THREE.TorusGeometry(.65,.09,8,22),mat(0xffdf6a,.35));ring.position.set(-4+i*2,2.4+(i%2)*.45,-11);ring.rotation.x=Math.PI/2;scene.add(ring)}
-const spirit=new THREE.Group();scene.add(spirit);const spiritBody=new THREE.Mesh(new THREE.SphereGeometry(.48,14,10),mat(0xff7eac,.55));spiritBody.position.y=.65;spirit.add(spiritBody);
-for(const sign of [-1,1]){const ear=new THREE.Mesh(new THREE.SphereGeometry(.17,10,8),mat(0xffb8d1));ear.position.set(sign*.4,1.02,0);spirit.add(ear);const eye=new THREE.Mesh(new THREE.SphereGeometry(.055,8,6),dark);eye.position.set(sign*.16,.73,.39);spirit.add(eye)}
-const smile=new THREE.Mesh(new THREE.TorusGeometry(.105,.018,6,12,Math.PI),mat(0x9a3159));smile.position.set(0,.56,.43);smile.rotation.z=Math.PI;spirit.add(smile);spirit.position.set(4,0,-8);
-const mangoes=[];const mangoPositions=[[-2,1.8,-1],[-4,2.05,-2.1],[3,2.45,-4.5],[-.2,3.45,-7.7],[5.8,1.65,1.3],[-5.7,1.5,-8.6],[0,1.25,4],[7,1.6,-6],[-8,1.35,2],[2,2,-12]];
-for(let i=0;i<mangoPositions.length;i++){const group=new THREE.Group();const fruit=new THREE.Mesh(new THREE.SphereGeometry(.23,12,10),gold);fruit.scale.set(.78,1.22,.8);group.add(fruit);const shine=new THREE.Mesh(new THREE.SphereGeometry(.065,8,6),goldLight);shine.position.set(-.07,.12,.17);group.add(shine);const stem=new THREE.Mesh(new THREE.CylinderGeometry(.025,.035,.12,5),leafA);stem.position.y=.28;group.add(stem);group.position.set(mangoPositions[i][0],mangoPositions[i][1],mangoPositions[i][2]);scene.add(group);mangoes.push({group,phase:i,baseY:mangoPositions[i][1],taken:false})}
+
 const hands=[];
 const handPrevious=[new THREE.Vector3(),new THREE.Vector3()];
 const handCurrent=[new THREE.Vector3(),new THREE.Vector3()];
+const handRaw=[new THREE.Vector3(),new THREE.Vector3()];
+const handShoulders=[new THREE.Vector3(),new THREE.Vector3()];
 let handHistoryReady=false;
-const armMeshes=[];
+const armMeshes=[],handVisuals=[];
 for(let i=0;i<2;i++){
   const controller=renderer.xr.getController(i);
-  const palm=new THREE.Mesh(new THREE.SphereGeometry(.11,10,8),mat(i===0?0x9affc4:0xffd16c));
-  palm.scale.set(1.05,.55,1.35);
-  controller.add(palm);
   rig.add(controller);
   hands.push(controller);
   rig.add(renderer.xr.getControllerGrip(i));
-  const arm=new THREE.Mesh(new THREE.CylinderGeometry(.075,.11,1,8),mat(i===0?0xd9a34c:0xb9823c));
+  const arm=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,1,9),mat(i===0?0xd9a34c:0xb9823c));
   arm.visible=false;scene.add(arm);armMeshes.push(arm);
+  const palm=new THREE.Mesh(new THREE.SphereGeometry(.16,10,8),mat(i===0?0x9affc4:0xffd16c));
+  palm.visible=false;scene.add(palm);handVisuals.push(palm);
 }
-let started=false,score=0,mangoCount=0,yaw=0,pitch=0,verticalSpeed=0,grounded=true,elapsed=0,lastTime=0,turnCooldown=0,tagCooldown=0;
+let started=false,yaw=0,pitch=0,verticalSpeed=0,grounded=true,elapsed=0,lastTime=0,turnCooldown=0;
 const pressed=new Set();window.addEventListener('keydown',e=>{if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)){e.preventDefault();pressed.add(e.code)}});window.addEventListener('keyup',e=>pressed.delete(e.code));
 let pointerDown=false,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{pointerDown=true;lastX=e.clientX;lastY=e.clientY;if(e.pointerType==='mouse'&&started&&!renderer.xr.isPresenting)canvas.requestPointerLock?.()});window.addEventListener('pointerup',()=>pointerDown=false);
 window.addEventListener('pointermove',e=>{if(!pointerDown||renderer.xr.isPresenting)return;const dx=(e.movementX||e.clientX-lastX),dy=(e.movementY||e.clientY-lastY);yaw-=dx*.0026;pitch=THREE.MathUtils.clamp(pitch-dy*.0024,-1.1,1.1);lastX=e.clientX;lastY=e.clientY});
 function message(text){document.getElementById('status').textContent=text}
-function begin(){started=true;document.getElementById('welcome').style.display='none';message('Tag the pink spirit and find all 10 mangoes!')}
+function begin(){started=true;document.getElementById('welcome').style.display='none';message('Long arms enabled. Push off surfaces to move!')}
 async function enterVR(){try{if(!navigator.xr){message('VR is unavailable here. Open this HTTPS page in Meta Quest Browser.');return}const supported=await navigator.xr.isSessionSupported('immersive-vr');if(!supported){message('This browser did not report VR support. Try Meta Quest Browser.');return}begin();const session=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});await renderer.xr.setSession(session)}catch(err){message('Could not start VR: '+(err&&err.message?err.message:'permission or device issue'))}}
 document.getElementById('play').addEventListener('click',begin);document.getElementById('vrButton').addEventListener('click',async()=>{if(renderer.xr.isPresenting){const s=renderer.xr.getSession();if(s)await s.end()}else await enterVR()});document.getElementById('menuVr').addEventListener('click',enterVR);
-renderer.xr.addEventListener('sessionstart',()=>{camera.position.set(0,0,0);camera.rotation.set(0,0,0);handHistoryReady=false;document.getElementById('vrButton').textContent='⏹ Exit VR';message('VR active! Press your hands into the floor or a platform, then move them away to push yourself.')});renderer.xr.addEventListener('sessionend',()=>{camera.position.set(0,1.65,0);handHistoryReady=false;document.getElementById('vrButton').textContent='🥽 Enter VR';message('VR ended. Keep exploring!')});
+renderer.xr.addEventListener('sessionstart',()=>{camera.position.set(0,0,0);camera.rotation.set(0,0,0);handHistoryReady=false;document.getElementById('vrButton').textContent='⏹ Exit VR';message('Long arms active! Plant a hand on the floor or a platform and push away.')});renderer.xr.addEventListener('sessionend',()=>{camera.position.set(0,1.65,0);handHistoryReady=false;document.getElementById('vrButton').textContent='🥽 Enter VR';message('VR ended. See you in the jungle!')});
 function groundHeight(x,z){let best=0;for(const p of platforms){if(Math.abs(x-p.x)<p.sx*.5+.23&&Math.abs(z-p.z)<p.sz*.5+.23&&p.top>best)best=p.top}return best}
 function moveDesktop(dt){let forward=(pressed.has('KeyW')||pressed.has('ArrowUp')?1:0)-(pressed.has('KeyS')||pressed.has('ArrowDown')?1:0);let side=(pressed.has('KeyD')||pressed.has('ArrowRight')?1:0)-(pressed.has('KeyA')||pressed.has('ArrowLeft')?1:0);const speed=5.6;const v=new THREE.Vector3(side,0,-forward);if(v.lengthSq()>0){v.normalize().multiplyScalar(speed*dt);v.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);rig.position.add(v)}if(pressed.has('Space')&&grounded){verticalSpeed=6.6;grounded=false}verticalSpeed-=16*dt;rig.position.y+=verticalSpeed*dt;const floorY=groundHeight(rig.position.x,rig.position.z);if(rig.position.y<=floorY&&verticalSpeed<0){rig.position.y=floorY;verticalSpeed=0;grounded=true}if(rig.position.y< -3){rig.position.y=0;verticalSpeed=0;grounded=true}camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38)}
-function handTouchesSurface(point){
-  if(point.y<=.48&&Math.abs(point.x)<90&&Math.abs(point.z)<90)return true;
-  for(const mesh of pushBoxes){const bounds=new THREE.Box3().setFromObject(mesh).expandByScalar(HAND_RADIUS);if(bounds.containsPoint(point))return true}
-  for(const trunk of treePushSurfaces){const dx=point.x-trunk.x,dz=point.z-trunk.z;if(point.y>=trunk.minY-HAND_RADIUS&&point.y<=trunk.maxY+HAND_RADIUS&&dx*dx+dz*dz<=(trunk.radius+HAND_RADIUS)*(trunk.radius+HAND_RADIUS))return true}
-  return false
+function sampleExtendedHands(){
+  const headPos=new THREE.Vector3(),headQuat=new THREE.Quaternion(),rightDir=new THREE.Vector3(1,0,0),down=new THREE.Vector3(0,-.42,0),forward=new THREE.Vector3(0,0,-.06);
+  camera.getWorldPosition(headPos);camera.getWorldQuaternion(headQuat);rightDir.applyQuaternion(headQuat);down.applyQuaternion(headQuat);forward.applyQuaternion(headQuat);
+  rig.updateMatrixWorld(true);
+  for(let i=0;i<2;i++){
+    hands[i].getWorldPosition(handRaw[i]);
+    const shoulder=headPos.clone().addScaledVector(rightDir,i===0?-.24:.24).add(down).add(forward);
+    handShoulders[i].copy(shoulder);
+    const reach=handRaw[i].clone().sub(shoulder);
+    if(reach.lengthSq()<.001)reach.set(0,-1,0);else reach.normalize();
+    handCurrent[i].copy(handRaw[i]).addScaledVector(reach,ARM_EXTENSION);
+  }
 }
 function moveVR(dt){
   const session=renderer.xr.getSession();if(!session)return;
   let right=null;for(const source of session.inputSources){if(source.gamepad&&source.handedness==='right')right=source.gamepad}
-  // Gorilla-style movement: hands propel the player while touching a surface.
-  rig.updateMatrixWorld(true);for(let i=0;i<2;i++)hands[i].getWorldPosition(handCurrent[i]);
+  sampleExtendedHands();
   if(!handHistoryReady){for(let i=0;i<2;i++)handPrevious[i].copy(handCurrent[i]);handHistoryReady=true}
   else{
     const bodyPush=new THREE.Vector3();let contactCount=0;
-    for(let i=0;i<2;i++){const now=handCurrent[i],delta=now.clone().sub(handPrevious[i]);if(hands[i].visible&&handTouchesSurface(now)&&delta.lengthSq()>.000004){bodyPush.addScaledVector(delta,-1);contactCount++}}
-    if(contactCount>0){bodyPush.multiplyScalar(1.8/contactCount);bodyPush.clampLength(0,.26);rig.position.add(bodyPush);message('Hand push! Keep pushing off surfaces.');}
+    for(let i=0;i<2;i++){
+      const delta=handCurrent[i].clone().sub(handPrevious[i]);
+      const touchingNow=handTouchesSurface(handCurrent[i]);
+      const touchingBefore=handTouchesSurface(handPrevious[i]);
+      if((touchingNow||touchingBefore)&&delta.lengthSq()>.000001){
+        bodyPush.addScaledVector(delta,-1);contactCount++;
+      }
+    }
+    if(contactCount>0){
+      bodyPush.multiplyScalar(PUSH_GAIN/contactCount);
+      bodyPush.clampLength(0,MAX_PUSH_PER_FRAME);
+      rig.position.add(bodyPush);
+      message('PUSH! Keep moving your hands against the surface.');
+    }
   }
-  // No thumbstick walking or button-jump. Arm movement drives translation.
+  // Right stick only turns; it does not provide thumbstick walking.
   if(right){const axes=right.axes||[],rx=axes.length>=4?(axes[2]||0):(axes[0]||0);if(Math.abs(rx)>.72&&turnCooldown<=0){rig.rotation.y-=Math.sign(rx)*Math.PI/6;turnCooldown=.32}}
   turnCooldown=Math.max(0,turnCooldown-dt);
   verticalSpeed-=15*dt;rig.position.y+=verticalSpeed*dt;
   const floorY=groundHeight(rig.position.x,rig.position.z);
   if(rig.position.y<=floorY&&verticalSpeed<0){rig.position.y=floorY;verticalSpeed=0;grounded=true}
   rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38);
-  // Re-sample hand positions after body motion so locomotion does not feed back and jitter.
-  rig.updateMatrixWorld(true);
-  for(let i=0;i<2;i++){hands[i].getWorldPosition(handCurrent[i]);handPrevious[i].copy(handCurrent[i])}
+  sampleExtendedHands();
+  for(let i=0;i<2;i++)handPrevious[i].copy(handCurrent[i]);
 }
 function updateArmVisuals(){
-  const headPos=new THREE.Vector3(),headQuat=new THREE.Quaternion(),rightDir=new THREE.Vector3(1,0,0),down=new THREE.Vector3(0,-.42,0),forward=new THREE.Vector3(0,0,-.06);
-  camera.getWorldPosition(headPos);camera.getWorldQuaternion(headQuat);rightDir.applyQuaternion(headQuat);forward.applyQuaternion(headQuat);
-  for(let i=0;i<2;i++){const arm=armMeshes[i];arm.visible=true;const shoulder=headPos.clone().addScaledVector(rightDir,i===0?-.22:.22).add(down).add(forward);const hand=handCurrent[i];const direction=hand.clone().sub(shoulder);const length=Math.max(.12,direction.length());arm.position.copy(shoulder).add(hand).multiplyScalar(.5);arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.normalize());arm.scale.set(1,length,1)}
+  for(let i=0;i<2;i++){
+    const arm=armMeshes[i],palm=handVisuals[i],shoulder=handShoulders[i],hand=handCurrent[i];
+    arm.visible=true;palm.visible=true;
+    const direction=hand.clone().sub(shoulder);
+    const length=Math.max(.12,direction.length());
+    arm.position.copy(shoulder).add(hand).multiplyScalar(.5);
+    arm.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),direction.clone().normalize());
+    arm.scale.set(1,length,1);
+    palm.position.copy(hand);
+  }
 }
-function updateGame(dt){elapsed+=dt;tagCooldown=Math.max(0,tagCooldown-dt);spirit.position.x=4+Math.sin(elapsed*.73)*3.5;spirit.position.z=-8+Math.cos(elapsed*.61)*2.8;spirit.position.y=.1+Math.sin(elapsed*2.1)*.15;spirit.rotation.y=Math.sin(elapsed)*.4;spiritBody.scale.y=1+Math.sin(elapsed*5)*.07;for(const m of mangoes){if(m.taken)continue;m.group.rotation.y+=dt*.9;m.group.position.y=m.baseY+Math.sin(elapsed*2+m.phase)*.1}const head=new THREE.Vector3();camera.getWorldPosition(head);if(tagCooldown<=0){const target=new THREE.Vector3();spirit.getWorldPosition(target);if(head.distanceTo(target.clone().add(new THREE.Vector3(0,.65,0)))<1.3){score++;document.getElementById('tags').textContent=String(score);tagCooldown=1.5;spirit.position.x=(Math.random()-.5)*12;spirit.position.z=-3-Math.random()*12;message('Tagged the jungle spirit! +1 tag 🌟')}}for(const m of mangoes){if(m.taken)continue;const pos=new THREE.Vector3();m.group.getWorldPosition(pos);if(head.distanceTo(pos)<.85){m.taken=true;scene.remove(m.group);mangoCount++;document.getElementById('mangoes').textContent=String(mangoCount);message(mangoCount===10?'All 10 mangoes found! Jungle champion! 🥭':'Mango collected! '+mangoCount+'/10')}}}
-function animate(now){const dt=Math.min((now-lastTime)/1000||.016,.04);lastTime=now;if(started){if(renderer.xr.isPresenting){moveVR(dt);rig.updateMatrixWorld(true);for(let i=0;i<2;i++)hands[i].getWorldPosition(handCurrent[i]);updateArmVisuals()}else{moveDesktop(dt);for(const arm of armMeshes)arm.visible=false}updateGame(dt)}else{for(const arm of armMeshes)arm.visible=false}renderer.render(scene,camera)}
+function updateGame(dt){elapsed+=dt;}
+function animate(now){const dt=Math.min((now-lastTime)/1000||.016,.04);lastTime=now;if(started){if(renderer.xr.isPresenting){moveVR(dt);updateArmVisuals()}else{moveDesktop(dt);for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}updateGame(dt)}else{for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}renderer.render(scene,camera)}
 renderer.setAnimationLoop(animate);
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});
 (async()=>{try{if(navigator.xr&&await navigator.xr.isSessionSupported('immersive-vr')){document.getElementById('vrStatus').textContent='VR support detected';document.getElementById('vrButton').textContent='🥽 Enter VR'}else{document.getElementById('vrStatus').textContent='VR support depends on device'}}catch(e){document.getElementById('vrStatus').textContent='Open on Quest for VR'}document.getElementById('loadStatus').textContent='Ready! Use Play or Enter VR.'})();
