@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Monke Tag VR — Visible Player Model Fix</title>
+<title>Monke Tag VR — Visible Player Model Fix v2</title>
 <style>
 :root{--bg:#dff1ff;--fg:#10202e;--card:rgba(255,255,255,.92);--acc:#e8432e;color-scheme:light}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1a26;--fg:#f2f7fb;--card:rgba(16,28,40,.92);color-scheme:dark}}
@@ -28,7 +28,7 @@ button:disabled{opacity:.5;cursor:default}
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script>
-const C={grav:9.8,hand:.13,bodyR:.28,bodyDrop:.35,avatarDrop:.42,botIt:4.7,botRun:4.3,boost:1.15,maxV:14};
+const C={grav:9.8,hand:.13,bodyR:.28,bodyDrop:.35,avatarDrop:.78,botIt:4.7,botRun:4.3,boost:1.15,maxV:14};
 const R=new THREE.WebGLRenderer({antialias:true});
 R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);R.xr.enabled=true;
 document.body.appendChild(R.domElement);
@@ -120,7 +120,7 @@ function makeMonkey(fur,skinHex,fing){
   const darkFurHex=new THREE.Color(fur).multiplyScalar(.58).getHex();
   const dk=new THREE.MeshLambertMaterial({map:furTex(darkFurHex)});
   const sk=new THREE.MeshLambertMaterial({color:skinHex});
-  const chestHex=new THREE.Color(fur).lerp(new THREE.Color(0xcba579),.3).getHex();
+  const chestHex=new THREE.Color(fur).lerp(new THREE.Color(0xf0d5a0),.62).getHex();
   const chestM=new THREE.MeshLambertMaterial({map:furTex(chestHex)});
   const g=new THREE.Group(),bodyG=new THREE.Group(),headG=new THREE.Group(),armG=new THREE.Group(),legG=new THREE.Group();
   g.add(bodyG,armG,legG);bodyG.add(headG);
@@ -408,7 +408,7 @@ function updatePlayerModel(xr,dt,T){
     const lq=i=>gq.clone().multiply(hQ[i]).multiply(r180);
     for(let i=0;i<2;i++)hCurl[i]+=(hCurlT[i]-hCurl[i])*Math.min(1,15*dt);
     const hR=hOn[1]?loc(hv[1]):V(-.4,-.25,.15),hL=hOn[0]?loc(hv[0]):V(.4,-.25,.15);
-    pose(pm,hR,hL,V(-.16,-1.12,.05),V(.16,-1.12,.05),T,hOn[1]?lq(1):null,hOn[0]?lq(0):null,hCurl[1],hCurl[0]);
+    pose(pm,hR,hL,V(-.16,-.78,.05),V(.16,-.78,.05),T,hOn[1]?lq(1):null,hOn[0]?lq(0):null,hCurl[1],hCurl[0]);
   }else{
     pm.g.rotation.y=mode==='desk'?yawD+Math.PI:Math.PI;
     pmPh+=Math.hypot(vel.x,vel.z)*dt*2.2;walk(pm,pmPh,!pGrounded,T);
