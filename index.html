@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#123f2c"><title>Jungle Rush VR — Long Arms Build 0.4</title>
+<meta name="theme-color" content="#123f2c"><title>Jungle Rush VR — Quest Build 0.5</title>
 <style>
 :root{color-scheme:dark;font-family:system-ui,-apple-system,Segoe UI,sans-serif}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#123f2c;color:#fff}#scene{display:block;width:100%;height:100%;touch-action:none}#hud{position:fixed;top:12px;left:12px;z-index:3;background:#073829da;border:1px solid #90efb5;border-radius:14px;padding:11px 14px;max-width:min(440px,calc(100vw - 24px));pointer-events:none}#title{font-weight:900;font-size:20px;color:#b8ff8c;letter-spacing:.3px}#stats{font-size:14px;margin-top:3px}#status{color:#ffe68c;font-size:13px;margin-top:4px}#help{position:fixed;left:12px;bottom:12px;z-index:3;background:#073829d9;border:1px solid #ffffff38;border-radius:12px;padding:10px 13px;font-size:12px;line-height:1.5;max-width:min(350px,calc(100vw - 24px));pointer-events:none}#vr-wrap{position:fixed;right:12px;top:12px;z-index:5;display:flex;gap:8px;align-items:center}button{font:inherit;font-weight:800;border:0;border-radius:12px;padding:12px 16px;min-height:44px;background:#baff74;color:#153922;cursor:pointer}button.secondary{background:#f3cf62}button:focus-visible{outline:3px solid #fff;outline-offset:3px}#vrStatus{font-size:11px;color:#eaffd7;max-width:130px;text-shadow:0 1px 3px #000}#welcome{position:fixed;z-index:10;inset:0;display:grid;place-items:center;padding:18px;background:linear-gradient(#042d2499,#061d18dd)}.card{width:min(530px,100%);background:#eaffd9;color:#16452d;border:2px solid #aaff7b;border-radius:24px;padding:24px;box-shadow:0 18px 60px #00160e88}.card h1{margin:2px 0 8px;font-size:clamp(28px,5vw,42px);line-height:1.05}.card p{line-height:1.45}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}.small{font-size:12px;opacity:.85}.loading{font-size:13px;color:#245637}@media(max-width:650px){#title{font-size:17px}#help{font-size:11px}#vr-wrap{top:auto;bottom:12px}#vrStatus{display:none}#hud{max-width:calc(100vw - 24px)}}
 </style>
@@ -10,10 +10,14 @@
 </head>
 <body>
 <canvas id="scene" aria-label="Jungle Rush 3D jungle game"></canvas>
-<section id="hud"><div id="title">🌴 JUNGLE RUSH VR <span style="font-size:10px;color:#e2ffb6">LONG ARMS 0.4</span></div><div id="stats">🖐️ Arm-push movement · Jungle playground</div><div id="status">Reach, plant your hands, and push away to move.</div></section>
+<section id="hud"><div id="title">🌴 JUNGLE RUSH VR <span style="font-size:10px;color:#e2ffb6">QUEST BUILD 0.5</span></div><div id="stats">🖐️ Long-arm movement playground</div><div id="status">Reach for a surface and push away to move.</div></section>
 <div id="vr-wrap"><span id="vrStatus">Checking VR support…</span><button id="vrButton" class="secondary" type="button">🥽 Enter VR</button></div>
-<div id="help"><b>Desktop:</b> WASD move · mouse drag to look · Space jump<br><b>Quest VR:</b> longer virtual arms reach surfaces sooner. Plant a hand on the floor, log, or platform and push away. Right stick snap-turns.</div>
-<div id="welcome"><div class="card"><div style="font-size:38px">🖐️🌿🌳</div><h1>Jungle Rush VR</h1><p>A clean jungle movement playground. Use longer virtual arms to reach the ground, logs, and platforms, then push away to propel yourself. The pig-like character and collectible clutter have been removed.</p><div class="actions"><button id="play" type="button">▶ Play Jungle Rush</button><button id="menuVr" type="button" class="secondary">🥽 Enter VR</button></div><p class="small">VR requires a compatible headset browser and a secure HTTPS connection. This prototype is single-player; it does not include online multiplayer. Make sure your play area is clear.</p><div id="loadStatus" class="loading">Loading the 3D jungle…</div></div></div>
+<div id="help"><b>QUEST CONTROLS</b><br>Reach with either controller, place your virtual hand against the floor, logs, or platforms, then push away. Right thumbstick snap-turns. No thumbstick walking.</div>
+<div id="welcome"><div class="card"><div style="font-size:38px">🖐️🌿🌳</div><h1>Jungle Rush VR</h1><p>A clean jungle movement playground. Use longer virtual arms to reach the ground, logs, and platforms, then push away to propel yourself. The pig-like character and collectible clutter have been removed.</p><div class="actions"><button id="menuVr" type="button" class="secondary">🥽 ENTER VR</button></div><p class="small">Made for Meta Quest Browser. Keep your play area clear and start with gentle pushes. This prototype is single-player.</p><div id="loadStatus" class="loading">Loading the 3D jungle…</div></div></div>
+<script>
+window.addEventListener('error',e=>{const n=document.getElementById('loadStatus');if(n)n.textContent='Game error: '+(e.message||'unknown error')+' — refresh this page to retry.';const w=document.getElementById('welcome');if(w)w.style.display='grid';});
+window.addEventListener('unhandledrejection',e=>{const n=document.getElementById('loadStatus');if(n)n.textContent='Game error: '+String(e.reason&&e.reason.message||e.reason||'unknown error')+' — refresh this page to retry.';const w=document.getElementById('welcome');if(w)w.style.display='grid';});
+</script>
 <script type="module">
 import * as THREE from 'three';
 const canvas=document.getElementById('scene');
@@ -30,10 +34,10 @@ const floor=new THREE.Mesh(new THREE.PlaneGeometry(180,180),grass);floor.rotatio
 const platforms=[];
 const pushBoxes=[];
 const treePushSurfaces=[];
-const HAND_RADIUS=.34;
-const ARM_EXTENSION=.72;
-const PUSH_GAIN=2.65;
-const MAX_PUSH_PER_FRAME=.42;
+const HAND_RADIUS=.56;
+const ARM_EXTENSION=1.08;
+const PUSH_GAIN=3.5;
+const MAX_PUSH_PER_FRAME=.55;
 function block(name,x,y,z,sx,sy,sz,material,topSurface=true){const mesh=new THREE.Mesh(new THREE.BoxGeometry(sx,sy,sz),material);mesh.name=name;mesh.position.set(x,y,z);scene.add(mesh);if(topSurface){platforms.push({x,z,sx,sz,top:y+sy/2});pushBoxes.push(mesh)}return mesh}
 function tree(x,z,scale=1,variant=0){const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.38*scale,.58*scale,4.8*scale,7),bark);trunk.position.set(x,2.3*scale,z);scene.add(trunk);treePushSurfaces.push({x,z,radius:.62*scale,minY:-.1*scale,maxY:4.7*scale});for(let i=0;i<4;i++){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry((1.35-i*.06)*scale,1),[leafA,leafB,leafC][(i+variant)%3]);crown.position.set(x+Math.sin(i*5+variant)*.5*scale,4.2*scale+i*.35*scale,z+Math.cos(i*4+variant)*.45*scale);crown.scale.set(1.1,1,.95);scene.add(crown)}}
 function makePlatform(name,x,y,z,sx,sy,sz,material){block(name,x,y,z,sx,sy,sz,material,true);block(name+' grassy top',x,y+sy/2+.012,z,sx*.9,.025,sz*.9,mat(0x68c75a),false)}
@@ -58,16 +62,26 @@ for(let i=0;i<2;i++){
   palm.visible=false;scene.add(palm);handVisuals.push(palm);
 }
 let started=false,yaw=0,pitch=0,verticalSpeed=0,grounded=true,elapsed=0,lastTime=0,turnCooldown=0;
-const pressed=new Set();window.addEventListener('keydown',e=>{if(['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)){e.preventDefault();pressed.add(e.code)}});window.addEventListener('keyup',e=>pressed.delete(e.code));
-let pointerDown=false,lastX=0,lastY=0;canvas.addEventListener('pointerdown',e=>{pointerDown=true;lastX=e.clientX;lastY=e.clientY;if(e.pointerType==='mouse'&&started&&!renderer.xr.isPresenting)canvas.requestPointerLock?.()});window.addEventListener('pointerup',()=>pointerDown=false);
-window.addEventListener('pointermove',e=>{if(!pointerDown||renderer.xr.isPresenting)return;const dx=(e.movementX||e.clientX-lastX),dy=(e.movementY||e.clientY-lastY);yaw-=dx*.0026;pitch=THREE.MathUtils.clamp(pitch-dy*.0024,-1.1,1.1);lastX=e.clientX;lastY=e.clientY});
+
 function message(text){document.getElementById('status').textContent=text}
 function begin(){started=true;document.getElementById('welcome').style.display='none';message('Long arms enabled. Push off surfaces to move!')}
-async function enterVR(){try{if(!navigator.xr){message('VR is unavailable here. Open this HTTPS page in Meta Quest Browser.');return}const supported=await navigator.xr.isSessionSupported('immersive-vr');if(!supported){message('This browser did not report VR support. Try Meta Quest Browser.');return}begin();const session=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});await renderer.xr.setSession(session)}catch(err){message('Could not start VR: '+(err&&err.message?err.message:'permission or device issue'))}}
-document.getElementById('play').addEventListener('click',begin);document.getElementById('vrButton').addEventListener('click',async()=>{if(renderer.xr.isPresenting){const s=renderer.xr.getSession();if(s)await s.end()}else await enterVR()});document.getElementById('menuVr').addEventListener('click',enterVR);
+async function enterVR(){try{if(!navigator.xr){message('WebXR is not available. Open this link directly in Meta Quest Browser.');return}
+  // requestSession is invoked directly by the user's button click so headset permission is not lost across an earlier await.
+  const sessionPromise=navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});
+  const session=await sessionPromise;
+  await renderer.xr.setSession(session);
+  begin();
+}catch(err){document.getElementById('welcome').style.display='grid';document.getElementById('loadStatus').textContent='Could not enter VR: '+(err&&err.message?err.message:'permission or device issue')}}
+document.getElementById('vrButton').addEventListener('click',async()=>{if(renderer.xr.isPresenting){const s=renderer.xr.getSession();if(s)await s.end()}else await enterVR()});document.getElementById('menuVr').addEventListener('click',enterVR);
 renderer.xr.addEventListener('sessionstart',()=>{camera.position.set(0,0,0);camera.rotation.set(0,0,0);handHistoryReady=false;document.getElementById('vrButton').textContent='⏹ Exit VR';message('Long arms active! Plant a hand on the floor or a platform and push away.')});renderer.xr.addEventListener('sessionend',()=>{camera.position.set(0,1.65,0);handHistoryReady=false;document.getElementById('vrButton').textContent='🥽 Enter VR';message('VR ended. See you in the jungle!')});
 function groundHeight(x,z){let best=0;for(const p of platforms){if(Math.abs(x-p.x)<p.sx*.5+.23&&Math.abs(z-p.z)<p.sz*.5+.23&&p.top>best)best=p.top}return best}
-function moveDesktop(dt){let forward=(pressed.has('KeyW')||pressed.has('ArrowUp')?1:0)-(pressed.has('KeyS')||pressed.has('ArrowDown')?1:0);let side=(pressed.has('KeyD')||pressed.has('ArrowRight')?1:0)-(pressed.has('KeyA')||pressed.has('ArrowLeft')?1:0);const speed=5.6;const v=new THREE.Vector3(side,0,-forward);if(v.lengthSq()>0){v.normalize().multiplyScalar(speed*dt);v.applyAxisAngle(new THREE.Vector3(0,1,0),yaw);rig.position.add(v)}if(pressed.has('Space')&&grounded){verticalSpeed=6.6;grounded=false}verticalSpeed-=16*dt;rig.position.y+=verticalSpeed*dt;const floorY=groundHeight(rig.position.x,rig.position.z);if(rig.position.y<=floorY&&verticalSpeed<0){rig.position.y=floorY;verticalSpeed=0;grounded=true}if(rig.position.y< -3){rig.position.y=0;verticalSpeed=0;grounded=true}camera.rotation.order='YXZ';camera.rotation.set(pitch,yaw,0);rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38)}
+function handTouchesSurface(point){
+  // Floor contact zone; hands have a forgiving radius to make pushes easier.
+  if(point.y<=.62&&Math.abs(point.x)<90&&Math.abs(point.z)<90)return true;
+  for(const mesh of pushBoxes){const bounds=new THREE.Box3().setFromObject(mesh).expandByScalar(HAND_RADIUS);if(bounds.containsPoint(point))return true}
+  for(const trunk of treePushSurfaces){const dx=point.x-trunk.x,dz=point.z-trunk.z;if(point.y>=trunk.minY-HAND_RADIUS&&point.y<=trunk.maxY+HAND_RADIUS&&dx*dx+dz*dz<=(trunk.radius+HAND_RADIUS)*(trunk.radius+HAND_RADIUS))return true}
+  return false
+}
 function sampleExtendedHands(){
   const headPos=new THREE.Vector3(),headQuat=new THREE.Quaternion(),rightDir=new THREE.Vector3(1,0,0),down=new THREE.Vector3(0,-.42,0),forward=new THREE.Vector3(0,0,-.06);
   camera.getWorldPosition(headPos);camera.getWorldQuaternion(headQuat);rightDir.applyQuaternion(headQuat);down.applyQuaternion(headQuat);forward.applyQuaternion(headQuat);
@@ -126,9 +140,9 @@ function updateArmVisuals(){
   }
 }
 function updateGame(dt){elapsed+=dt;}
-function animate(now){const dt=Math.min((now-lastTime)/1000||.016,.04);lastTime=now;if(started){if(renderer.xr.isPresenting){moveVR(dt);updateArmVisuals()}else{moveDesktop(dt);for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}updateGame(dt)}else{for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}renderer.render(scene,camera)}
+function animate(now){const dt=Math.min((now-lastTime)/1000||.016,.04);lastTime=now;if(started&&renderer.xr.isPresenting){moveVR(dt);updateArmVisuals();updateGame(dt)}else{for(const arm of armMeshes)arm.visible=false;for(const palm of handVisuals)palm.visible=false}renderer.render(scene,camera)}
 renderer.setAnimationLoop(animate);
 window.addEventListener('resize',()=>{camera.aspect=window.innerWidth/window.innerHeight;camera.updateProjectionMatrix();renderer.setSize(window.innerWidth,window.innerHeight)});
-(async()=>{try{if(navigator.xr&&await navigator.xr.isSessionSupported('immersive-vr')){document.getElementById('vrStatus').textContent='VR support detected';document.getElementById('vrButton').textContent='🥽 Enter VR'}else{document.getElementById('vrStatus').textContent='VR support depends on device'}}catch(e){document.getElementById('vrStatus').textContent='Open on Quest for VR'}document.getElementById('loadStatus').textContent='Ready! Use Play or Enter VR.'})();
+(async()=>{try{if(navigator.xr&&await navigator.xr.isSessionSupported('immersive-vr')){document.getElementById('vrStatus').textContent='Quest VR ready';document.getElementById('vrButton').textContent='🥽 Enter VR'}else{document.getElementById('vrStatus').textContent='Open this page in Quest Browser'}}catch(e){document.getElementById('vrStatus').textContent='Open this page in Quest Browser'}document.getElementById('loadStatus').textContent='Ready for Meta Quest. Press ENTER VR.'})();
 </script>
 </body></html>
