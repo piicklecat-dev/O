@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Monke Tag VR — Lower Body Update</title>
+<title>Monke Tag VR — Realistic Avatar Update</title>
 <style>
 :root{--bg:#dff1ff;--fg:#10202e;--card:rgba(255,255,255,.92);--acc:#e8432e;color-scheme:light}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1a26;--fg:#f2f7fb;--card:rgba(16,28,40,.92);color-scheme:dark}}
@@ -116,28 +116,86 @@ function bake(arr,parent){
   });
 }
 function makeMonkey(fur,skinHex,fing){
-  const fm=new THREE.MeshLambertMaterial({map:furTex(fur)}),dk=new THREE.MeshLambertMaterial({map:furTex(new THREE.Color(fur).multiplyScalar(.6).getHex())}),sk=new THREE.MeshLambertMaterial({color:skinHex});
-  const g=new THREE.Group(),bodyG=new THREE.Group(),armG=new THREE.Group(),legG=new THREE.Group();g.add(bodyG,armG,legG);scene.add(g);
-  let st=[];const P=(geo,mat,x,y,z,sx,sy,sz)=>st.push(mesh(geo,mat,x,y,z,sx,sy,sz));
-  P(S,fm,0,.18,0,.3,.3,.24);P(S,fm,0,-.06,0,.27,.26,.23);P(S,fm,0,-.22,-.03,.25,.18,.22);P(S,fm,0,.3,-.04,.36,.14,.22);
-  P(S,sk,0,.2,.19,.18,.18,.06);P(CY,fm,0,.38,.05,.1,.14,.1);
-  P(S,fm,0,.55,.08,.19,.18,.2);P(S,fm,0,.69,.05,.1,.05,.12);P(S,fm,0,.6,.19,.15,.04,.08);
-  P(S,sk,0,.5,.2,.14,.15,.1);P(S,sk,0,.44,.27,.1,.075,.09);P(S,sk,0,.38,.27,.07,.04,.07);
-  P(S,blackM,-.025,.45,.35,.012,.01,.01);P(S,blackM,.025,.45,.35,.012,.01,.01);P(S,blackM,0,.405,.335,.06,.008,.02);
-  [-1,1].forEach(s=>{
-    P(S,dk,s*.065,.56,.255,.045,.035,.03);P(S,whiteM,s*.065,.56,.27,.026,.022,.02);P(S,eyeM,s*.065,.56,.285,.016,.016,.01);P(S,blackM,s*.065,.56,.292,.008,.008,.006);
-    P(S,fm,s*.19,.53,.06,.06,.075,.03);P(S,sk,s*.2,.53,.075,.04,.055,.015);
-  });
+  const fm=new THREE.MeshLambertMaterial({map:furTex(fur)});
+  const darkFurHex=new THREE.Color(fur).multiplyScalar(.58).getHex();
+  const dk=new THREE.MeshLambertMaterial({map:furTex(darkFurHex)});
+  const sk=new THREE.MeshLambertMaterial({color:skinHex});
+  const chestHex=new THREE.Color(fur).lerp(new THREE.Color(0xcba579),.3).getHex();
+  const chestM=new THREE.MeshLambertMaterial({map:furTex(chestHex)});
+  const g=new THREE.Group(),bodyG=new THREE.Group(),headG=new THREE.Group(),armG=new THREE.Group(),legG=new THREE.Group();
+  g.add(bodyG,armG,legG);bodyG.add(headG);
+  let st=[];
+  const P=(geo,mat,x,y,z,sx,sy,sz,rx,ry,rz)=>st.push(mesh(geo,mat,x,y,z,sx,sy,sz,rx,ry,rz));
+
+  // Torso: overlapping shapes create a broader chest and a tapered waist.
+  P(S,fm,0,.035,-.015,.30,.36,.235);
+  P(S,fm,0,-.19,-.02,.265,.225,.22);
+  P(S,fm,0,.245,-.025,.285,.225,.22);
+  P(S,fm,0,-.12,.12,.205,.19,.105);
+  P(CY,fm,0,.365,-.025,.115,.19,.115);
+  P(S,chestM,0,.055,.175,.198,.235,.067);
+  // A little shoulder fur softens the transition into the long arms.
+  P(S,fm,-.245,.205,-.015,.13,.19,.16);
+  P(S,fm,.245,.205,-.015,.13,.19,.16);
   bake(st,bodyG);
+
+  // Head and face are separate so the headset can hide the head in VR
+  // while still showing the player's torso, shoulders and legs.
+  st=[];
+  P(S,fm,0,.575,.005,.225,.22,.205);
+  P(S,fm,0,.65,-.005,.17,.145,.17);
+  P(S,fm,-.16,.545,.115,.085,.09,.085);
+  P(S,fm,.16,.545,.115,.085,.09,.085);
+  // Ears with a visible inner surface.
+  P(S,dk,-.218,.585,.005,.068,.082,.052);
+  P(S,dk,.218,.585,.005,.068,.082,.052);
+  P(S,sk,-.239,.586,.045,.036,.05,.016);
+  P(S,sk,.239,.586,.045,.036,.05,.016);
+  // Broad face mask, paired muzzle pads, and a rounded nose.
+  P(S,sk,0,.535,.178,.158,.13,.06);
+  P(S,sk,-.052,.466,.236,.068,.052,.058);
+  P(S,sk,.052,.466,.236,.068,.052,.058);
+  P(S,sk,0,.505,.265,.047,.039,.045);
+  P(S,eyeM,0,.512,.3,.043,.027,.027);
+  P(S,blackM,-.018,.516,.322,.008,.006,.005);
+  P(S,blackM,.018,.516,.322,.008,.006,.005);
+  // Eye sockets, whites, irises, pupils and catchlights.
+  [-1,1].forEach(s=>{
+    P(S,dk,s*.078,.593,.211,.052,.051,.027);
+    P(S,whiteM,s*.078,.592,.231,.032,.034,.02);
+    P(S,eyeM,s*.075,.59,.249,.018,.021,.012);
+    P(S,blackM,s*.075,.59,.258,.009,.013,.006);
+    P(S,whiteM,s*.068,.601,.264,.0055,.006,.0035);
+    P(S,dk,s*.08,.638,.229,.063,.019,.023);
+  });
+  // A curved mouth line reads better than a flat oval.
+  const smile=new THREE.CatmullRomCurve3([
+    V(-.078,.437,.286),V(-.052,.42,.298),V(0,.416,.301),V(.052,.42,.298),V(.078,.437,.286)
+  ]);
+  st.push(new THREE.Mesh(new THREE.TubeGeometry(smile,12,.006,5,false),eyeM));
+  // Small crown tufts break up the round silhouette.
+  P(new THREE.ConeGeometry(1,1,7),fm,-.065,.765,-.015,.045,.075,.045,0,0,-.22);
+  P(new THREE.ConeGeometry(1,1,7),fm,0,.78,-.02,.045,.085,.045);
+  P(new THREE.ConeGeometry(1,1,7),fm,.065,.765,-.015,.045,.075,.045,0,0,.22);
+  bake(st,headG);
+
   const tail=mkTail(fm,bodyG);
   const mark=new THREE.Mesh(new THREE.ConeGeometry(.15,.3,8),new THREE.MeshBasicMaterial({color:0xff2a1a}));
   mark.rotation.x=Math.PI;mark.position.set(0,1.1,0);bodyG.add(mark);
   const mkArm=sd=>{
-    const A={up:new THREE.Mesh(TP,fm),lo:new THREE.Mesh(TP,fm),el:mesh(S,fm,0,0,0,.068,.068,.068),sh:mesh(S,fm,0,0,0,.1,.1,.1),hg:new THREE.Group(),fingers:[]};
+    const A={up:new THREE.Mesh(TP,fm),lo:new THREE.Mesh(TP,fm),el:mesh(S,fm,0,0,0,.073,.073,.073),sh:mesh(S,fm,0,0,0,.115,.115,.115),hg:new THREE.Group(),fingers:[]};
     armG.add(A.up,A.lo,A.el,A.sh,A.hg);
     st=[];
-    if(fing){P(S,fm,0,0,-.03,.05,.045,.05);P(S,fm,0,.002,.025,.058,.03,.065);P(S,sk,0,-.022,.03,.05,.014,.055)}
-    else{P(S,dk,0,0,-.01,.052,.04,.06);P(S,dk,0,-.015,.1,.058,.035,.04);P(S,dk,0,-.03,.13,.05,.03,.03);A.el.visible=false;A.sh.visible=false}
+    if(fing){
+      P(S,fm,0,0,-.03,.05,.045,.05);
+      P(S,fm,0,.002,.025,.058,.03,.065);
+      P(S,sk,0,-.022,.03,.05,.014,.055);
+    }else{
+      P(S,dk,0,0,-.01,.052,.04,.06);
+      P(S,dk,0,-.015,.1,.058,.035,.04);
+      P(S,dk,0,-.03,.13,.05,.03,.03);
+      A.el.visible=false;A.sh.visible=false;
+    }
     bake(st,A.hg);
     if(fing){
       const mkF=(x,y,z,l1,l2,r,ry,b,k1,k2,ord)=>{
@@ -152,14 +210,14 @@ function makeMonkey(fur,skinHex,fing){
     return A;
   };
   const mkLeg=()=>{
-    const L={th:new THREE.Mesh(TP,fm),sh:new THREE.Mesh(TP,fm),kn:mesh(S,fm,0,0,0,.08,.08,.08),ft:new THREE.Group()};
+    const L={th:new THREE.Mesh(TP,fm),sh:new THREE.Mesh(TP,fm),kn:mesh(S,fm,0,0,0,.085,.085,.085),ft:new THREE.Group()};
     legG.add(L.th,L.sh,L.kn,L.ft);
     st=[];P(S,sk,0,-.012,.05,.055,.03,.1);P(S,sk,0,0,-.01,.05,.04,.05);
     if(!fing)L.kn.visible=false;
     [-.03,-.01,.01,.03].forEach(x=>P(S,sk,x,-.005,.14,.017,.014,.03));
     bake(st,L.ft);return L;
   };
-  return{g,fm,dk,sk,tail,mark,bodyG,armG,legG,arms:[mkArm(-1),mkArm(1)],legs:[mkLeg(),mkLeg()]};
+  return{g,fm,dk,sk,tail,mark,bodyG,headG,armG,legG,arms:[mkArm(-1),mkArm(1)],legs:[mkLeg(),mkLeg()]};
 }
 const TN=12,TR=8;
 function mkTail(mat,parent){
@@ -204,7 +262,7 @@ function roll(m,dir,q){
   const ang=Math.atan2(dir.dot(new THREE.Vector3().crossVectors(bx,hx)),bx.dot(hx));
   m.quaternion.premultiply(new THREE.Quaternion().setFromAxisAngle(dir,ang));
 }
-const SHO=[V(-.27,.2,-.04),V(.27,.2,-.04)],HIP=[V(-.15,-.18,-.02),V(.15,-.18,-.02)],POLE_A=[V(-1,-.3,-.8),V(1,-.3,-.8)],POLE_L=V(0,.1,1),bm=new THREE.Matrix4();
+const SHO=[V(-.27,.38,-.04),V(.27,.38,-.04)],HIP=[V(-.15,-.18,-.02),V(.15,-.18,-.02)],POLE_A=[V(-1,-.3,-.8),V(1,-.3,-.8)],POLE_L=V(0,.1,1),bm=new THREE.Matrix4();
 function pose(m,h0,h1,f0,f1,T,q0,q1,c0,c1){
   [[h0,q0,c0],[h1,q1,c1]].forEach(([h,q,c],i)=>{
     const A=m.arms[i],sh=SHO[i],el=ik2(sh,h,.38,.38,POLE_A[i]);
@@ -341,7 +399,7 @@ function stepPlayer(dt,xr){
 function updatePlayerModel(xr,dt,T){
   pm.g.position.set(head.x,head.y-C.avatarDrop,head.z);
   const it=itId===-1;setIt(pm,it);pm.mark.visible=it&&!xr;
-  pm.bodyG.visible=!xr;pm.legG.visible=!xr;
+  pm.bodyG.visible=true;pm.headG.visible=!xr;pm.legG.visible=true;
   if(xr){
     pm.g.rotation.y=headYaw+Math.PI;
     const loc=v=>v.clone().sub(pm.g.position).applyAxisAngle(Y,-pm.g.rotation.y);
