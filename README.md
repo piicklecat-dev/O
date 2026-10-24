@@ -1,18 +1,18 @@
 # Jungle Rush VR
 
-An original browser-based 3D jungle game prototype using Three.js and WebXR, designed for desktop testing and Meta Quest Browser on Quest 2 / 3 / 3S.
+An original browser-based 3D jungle movement prototype using Three.js and WebXR, designed for desktop testing and Meta Quest Browser on Quest 2 / 3 / 3S.
 
 ## Play online
 https://piicklecat-dev.github.io/O/
 
 ## Controls
 - Desktop: WASD or arrow keys to move, mouse drag to look, Space to jump.
-- Quest VR: push against the ground, platforms, logs, and tree trunks with your tracked hands to propel yourself. Right thumbstick snap-turns. The game is built around arm-push locomotion rather than thumbstick walking.
-- Tag the pink spirit and find all 10 mangoes.
-- Single-player only; no online multiplayer or standalone APK yet.
+- Quest VR: use the extended virtual arms to reach the floor, logs, tree trunks, and platforms. Move the hands against a surface and push away to propel yourself. The right thumbstick snap-turns.
+- The pig-like spirit, mango collectibles, floating rings, and scattered flowers were removed for a cleaner movement playground.
+- Single-player prototype; no online multiplayer or standalone APK yet.
 
 ## Hosting and updates
-The game is hosted by GitHub Pages. After the initial setup, keep using the same link. Changes committed to the main branch trigger the deployment workflow automatically.
+The game is hosted by GitHub Pages. Keep using the same link; changes pushed to the main branch trigger the deployment workflow.
 
 ## Notes
-The site uses the Three.js browser module from jsDelivr and needs internet access. WebXR needs HTTPS and a compatible headset/browser. This is an early prototype; movement tuning and physical Quest testing may still be needed.
+The site uses Three.js from jsDelivr and needs internet access. WebXR needs HTTPS and a compatible headset/browser. This is an early prototype, and the arm-push physics may need tuning after physical Quest testing.
