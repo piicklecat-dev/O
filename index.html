@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Monke Tag VR — Realistic Avatar Update</title>
+<title>Monke Tag VR — Visible Player Model Fix</title>
 <style>
 :root{--bg:#dff1ff;--fg:#10202e;--card:rgba(255,255,255,.92);--acc:#e8432e;color-scheme:light}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1a26;--fg:#f2f7fb;--card:rgba(16,28,40,.92);color-scheme:dark}}
@@ -28,7 +28,7 @@ button:disabled{opacity:.5;cursor:default}
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
 <script>
-const C={grav:9.8,hand:.13,bodyR:.28,bodyDrop:.35,avatarDrop:1.1,botIt:4.7,botRun:4.3,boost:1.15,maxV:14};
+const C={grav:9.8,hand:.13,bodyR:.28,bodyDrop:.35,avatarDrop:.42,botIt:4.7,botRun:4.3,boost:1.15,maxV:14};
 const R=new THREE.WebGLRenderer({antialias:true});
 R.setPixelRatio(Math.min(devicePixelRatio,2));R.setSize(innerWidth,innerHeight);R.xr.enabled=true;
 document.body.appendChild(R.domElement);
@@ -134,6 +134,7 @@ function makeMonkey(fur,skinHex,fing){
   P(S,fm,0,-.12,.12,.205,.19,.105);
   P(CY,fm,0,.365,-.025,.115,.19,.115);
   P(S,chestM,0,.055,.175,.198,.235,.067);
+  P(S,chestM,0,-.13,.164,.145,.105,.044);
   // A little shoulder fur softens the transition into the long arms.
   P(S,fm,-.245,.205,-.015,.13,.19,.16);
   P(S,fm,.245,.205,-.015,.13,.19,.16);
@@ -407,7 +408,7 @@ function updatePlayerModel(xr,dt,T){
     const lq=i=>gq.clone().multiply(hQ[i]).multiply(r180);
     for(let i=0;i<2;i++)hCurl[i]+=(hCurlT[i]-hCurl[i])*Math.min(1,15*dt);
     const hR=hOn[1]?loc(hv[1]):V(-.4,-.25,.15),hL=hOn[0]?loc(hv[0]):V(.4,-.25,.15);
-    pose(pm,hR,hL,V(-.16,-.33,0),V(.16,-.33,0),T,hOn[1]?lq(1):null,hOn[0]?lq(0):null,hCurl[1],hCurl[0]);
+    pose(pm,hR,hL,V(-.16,-1.12,.05),V(.16,-1.12,.05),T,hOn[1]?lq(1):null,hOn[0]?lq(0):null,hCurl[1],hCurl[0]);
   }else{
     pm.g.rotation.y=mode==='desk'?yawD+Math.PI:Math.PI;
     pmPh+=Math.hypot(vel.x,vel.z)*dt*2.2;walk(pm,pmPh,!pGrounded,T);
