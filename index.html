@@ -86,7 +86,6 @@ function moveVR(dt){
     const bodyPush=new THREE.Vector3();let contactCount=0;
     for(let i=0;i<2;i++){const now=handCurrent[i],delta=now.clone().sub(handPrevious[i]);if(hands[i].visible&&handTouchesSurface(now)&&delta.lengthSq()>.000004){bodyPush.addScaledVector(delta,-1);contactCount++}}
     if(contactCount>0){bodyPush.multiplyScalar(1.12/contactCount);bodyPush.clampLength(0,.18);rig.position.add(bodyPush)}
-    for(let i=0;i<2;i++)handPrevious[i].copy(handCurrent[i]);
   }
   // No thumbstick walking or button-jump. Arm movement drives translation.
   if(right){const axes=right.axes||[],rx=axes.length>=4?(axes[2]||0):(axes[0]||0);if(Math.abs(rx)>.72&&turnCooldown<=0){rig.rotation.y-=Math.sign(rx)*Math.PI/6;turnCooldown=.32}}
@@ -94,7 +93,10 @@ function moveVR(dt){
   verticalSpeed-=15*dt;rig.position.y+=verticalSpeed*dt;
   const floorY=groundHeight(rig.position.x,rig.position.z);
   if(rig.position.y<=floorY&&verticalSpeed<0){rig.position.y=floorY;verticalSpeed=0;grounded=true}
-  rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38)
+  rig.position.x=THREE.MathUtils.clamp(rig.position.x,-38,38);rig.position.z=THREE.MathUtils.clamp(rig.position.z,-38,38);
+  // Re-sample hand positions after body motion so locomotion does not feed back and jitter.
+  rig.updateMatrixWorld(true);
+  for(let i=0;i<2;i++){hands[i].getWorldPosition(handCurrent[i]);handPrevious[i].copy(handCurrent[i])}
 }
 function updateArmVisuals(){
   const headPos=new THREE.Vector3(),headQuat=new THREE.Quaternion(),rightDir=new THREE.Vector3(1,0,0),down=new THREE.Vector3(0,-.42,0),forward=new THREE.Vector3(0,0,-.06);
